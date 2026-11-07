@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { t } from '../../i18n/index.ts'
 import type { StudyItem } from '../dictionary/studyItem.ts'
-import { audioUrl, hasAudio } from './audio.ts'
+import { audioSources } from './audio.ts'
 
 /** Only one recording plays at a time. */
 let currentAudio: HTMLAudioElement | undefined
@@ -12,17 +12,25 @@ type AudioButtonProps = {
 }
 
 /**
- * Speaker button for a word or character with a recording. The MP3 is only
- * requested on click; the files live in public/audio so playback works
- * offline. Nothing is rendered for items without a recording.
+ * Speaker button for a word or character with a recording. A word may be
+ * played as one file or as its syllables (还 huán, 北京). The MP3s are only
+ * requested on click; they live in public/audio. Nothing is rendered for
+ * items without a recording.
  */
 export function AudioButton({ item, className = '' }: AudioButtonProps) {
-  if (!hasAudio(item)) return null
-  return <AudioButtonInner item={item} className={className} />
+  const sources = audioSources(item)
+  if (sources.length === 0) return null
+  return <AudioButtonInner item={item} sources={sources} className={className} />
 }
 
-function AudioButtonInner({ item, className }: AudioButtonProps) {
+function AudioButtonInner({
+  item,
+  sources,
+  className,
+}: AudioButtonProps & { sources: readonly string[] }) {
   const audioRef = useRef<HTMLAudioElement>(null)
+  const indexRef = useRef(0)
+  const switching = useRef(false)
   const [playing, setPlaying] = useState(false)
   const [unavailable, setUnavailable] = useState(false)
 
@@ -35,7 +43,28 @@ function AudioButtonInner({ item, className }: AudioButtonProps) {
 
   if (unavailable) return null
 
-  const label = t('audio.play', { hanzi: item.entry.hanzi })
+  const playCurrent = () => {
+    const audio = audioRef.current
+    const source = sources[indexRef.current]
+    if (!audio || !source) {
+      setPlaying(false)
+      return
+    }
+    switching.current = true
+    audio.src = source
+    audio.currentTime = 0
+    void audio.play().then(
+      () => {
+        switching.current = false
+        setPlaying(true)
+      },
+      () => {
+        switching.current = false
+        setUnavailable(true)
+      },
+    )
+  }
+
   const play = () => {
     const audio = audioRef.current
     if (!audio) return
@@ -44,12 +73,21 @@ function AudioButtonInner({ item, className }: AudioButtonProps) {
       currentAudio.currentTime = 0
     }
     currentAudio = audio
-    audio.currentTime = 0
-    void audio.play().then(
-      () => setPlaying(true),
-      () => setUnavailable(true),
-    )
+    indexRef.current = 0
+    setPlaying(true)
+    playCurrent()
   }
+
+  const onEnded = () => {
+    indexRef.current += 1
+    if (indexRef.current >= sources.length) {
+      setPlaying(false)
+      return
+    }
+    playCurrent()
+  }
+
+  const label = t('audio.play', { hanzi: item.entry.hanzi })
 
   return (
     <>
@@ -64,11 +102,12 @@ function AudioButtonInner({ item, className }: AudioButtonProps) {
       </button>
       <audio
         ref={audioRef}
-        src={audioUrl(item.entry.hanzi)}
         preload="none"
         onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onEnded={() => setPlaying(false)}
+        onPause={() => {
+          if (!switching.current) setPlaying(false)
+        }}
+        onEnded={onEnded}
         onError={() => {
           setPlaying(false)
           setUnavailable(true)

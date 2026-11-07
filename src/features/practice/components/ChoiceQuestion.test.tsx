@@ -82,6 +82,15 @@ describe('ChoiceQuestion', () => {
     expect(onAnswer).toHaveBeenCalledWith(true)
   })
 
+  it('offers pronunciation in the answer feedback', async () => {
+    const user = userEvent.setup()
+    renderQuestion('meaning-choice')
+
+    await user.click(screen.getByRole('button', { name: 'two' }))
+
+    expect(screen.getByRole('button', { name: 'Play pronunciation of 二' })).toBeInTheDocument()
+  })
+
   it('on a wrong answer marks the picked and the correct one, and "Continue" answers false', async () => {
     const user = userEvent.setup()
     const onAnswer = renderQuestion('meaning-choice')

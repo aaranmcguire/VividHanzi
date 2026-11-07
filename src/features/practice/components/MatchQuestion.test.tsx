@@ -43,7 +43,7 @@ describe('MatchQuestion', () => {
     expect(screen.getByText('Correct!')).toBeInTheDocument()
     // The other three words are listed with their answers too
     const others = screen.getByRole('heading', { name: 'The other words' }).nextElementSibling as HTMLElement
-    expect(within(others).getAllByRole('button')).toHaveLength(3)
+    expect(within(others).getAllByRole('button', { name: /^Look up/ })).toHaveLength(3)
     expect(others).toHaveTextContent('one')
     expect(others).not.toHaveTextContent('two')
     await user.click(screen.getByRole('button', { name: 'Continue' }))

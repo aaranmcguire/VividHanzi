@@ -190,17 +190,20 @@ example sentences").
 ### audio-cmn (pronunciation audio)
 
 - **URL:** https://github.com/hugolpz/audio-cmn
-- **Version:** the `24k-abr/hsk` files from `master` at the time of import.
+- **Version:** the `24k-abr/hsk` and `24k-abr/syllabs` files from `master`
+  at the time of import.
 - **License:** CC BY-SA. Speakers: Chen Wang and Yue Tan.
 - **Attribution:** `public/audio/ATTRIBUTION.txt`, and the app's data credits.
-- **Fields:** one MP3 per word or character (`cmn-{hanzi}.mp3`), copied
-  unchanged into `public/audio/` and listed in `src/data/audio.ts`.
-- **Coverage:** 2,759 recordings matched to the app's HSK 1-5 words and HSK
-  1-4 characters. Missing recordings simply have no play button. The four
-  hanzi with several readings (长, 得, 还, 只) are left out because one file
-  cannot represent both readings.
-- **Import:** `npm run audio:import -- <path to audio-cmn/24k-abr/hsk>` (see
-  the script header for the sparse checkout command).
+- **Fields:** one MP3 per word or character (`cmn-{hanzi}.mp3`) and one per
+  syllable (`cmn-{pinyin}{tone}.mp3`), copied unchanged into `public/audio/`
+  and listed in `src/data/audio.ts`.
+- **Coverage:** 2,759 whole-word/character recordings matched to the app's
+  HSK 1-5 words and HSK 1-4 characters, plus 1,707 syllables. Words without a
+  whole-word file, and the four hanzi with several readings (长, 得, 还, 只),
+  play their syllables when every syllable is available; otherwise there is
+  no play button.
+- **Import:** `npm run audio:import -- <path to audio-cmn/24k-abr>` (see the
+  script header for the sparse checkout command).
 
 ### HSK 2.0 list
 

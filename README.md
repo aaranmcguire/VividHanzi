@@ -44,6 +44,7 @@ phone.
 - **Grammar notes** for 30 common particles and patterns, with examples.
 - **Pronunciation audio:** hear words and characters with recordings from
   audio-cmn, bundled with the app so no external audio service is needed.
+  Words without a whole-word recording fall back to their syllables.
 - **Tone colors** for hanzi and pinyin, **dark mode**, installable as an app
   on your home screen.
 - **Progress:** daily goal, activity calendar, streaks, accuracy charts,

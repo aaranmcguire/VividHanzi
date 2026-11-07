@@ -5,7 +5,10 @@ import { hskWordItems } from '../dictionary/hskDictionary.ts'
 import { AudioButton } from './AudioButton.tsx'
 
 const thanks = hskWordItems.find((item) => item.entry.hanzi === '谢谢')!
-const beijing = hskWordItems.find((item) => item.entry.hanzi === '北京')!
+// Neutral-tone 得 (de) has no whole-word file and no de5 syllable recording.
+const noAudio = hskWordItems.find(
+  (item) => item.entry.hanzi === '得' && item.entry.pinyin === 'de',
+)!
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -21,13 +24,13 @@ describe('AudioButton', () => {
     await user.click(screen.getByRole('button', { name: 'Play pronunciation of 谢谢' }))
 
     expect(play).toHaveBeenCalled()
-    expect(container.querySelector('audio')?.getAttribute('src')).toContain(
+    expect((container.querySelector('audio') as HTMLAudioElement).src).toContain(
       'audio/cmn-%E8%B0%A2%E8%B0%A2.mp3',
     )
   })
 
-  it('renders nothing when the word has no recording', () => {
-    const { container } = render(<AudioButton item={beijing} />)
+  it('renders nothing when neither the word nor its syllables have audio', () => {
+    const { container } = render(<AudioButton item={noAudio} />)
 
     expect(container).toBeEmptyDOMElement()
   })

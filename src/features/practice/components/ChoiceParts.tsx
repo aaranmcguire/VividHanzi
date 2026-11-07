@@ -3,6 +3,7 @@ import { Button } from '../../../components/ui/Button.tsx'
 import { Kbd } from '../../../components/ui/Kbd.tsx'
 import { t } from '../../../i18n/index.ts'
 import { formatPinyin, type Dictionary } from '../../dictionary/dictionary.ts'
+import { AudioButton } from '../../audio/AudioButton.tsx'
 import { getStudyItemId, type StudyItem } from '../../dictionary/studyItem.ts'
 import { PinyinText } from '../../dictionary/components/PinyinText.tsx'
 import { ToneHanzi } from '../../dictionary/components/ToneHanzi.tsx'
@@ -96,11 +97,12 @@ export function AnswerFeedback({ item, isCorrect, dictionary, onLookUp, onContin
           {t(isCorrect ? 'practice.choice.correct' : 'practice.choice.incorrect')}
         </p>
         {/* The {' '} separate the words when read aloud; the visual gap comes from gap */}
-        <p className="mt-2 flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1">
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
           <ToneHanzi entry={item.entry} className="text-2xl" />{' '}
           <PinyinText pinyin={formatPinyin(item.entry)} className="text-accent-strong" />{' '}
           <span className="text-ink-muted">{getMeaningLabel(item)}</span>
-        </p>
+          <AudioButton item={item} className="size-8" />
+        </div>
       </div>
       <LookUpButtons item={item} dictionary={dictionary} onLookUp={onLookUp} />
       {otherItems.length > 0 && (
@@ -108,18 +110,19 @@ export function AnswerFeedback({ item, isCorrect, dictionary, onLookUp, onContin
           <h3 className="mb-2 text-sm text-ink-muted">{t('practice.otherWords')}</h3>
           <ul className="flex flex-col gap-2">
             {otherItems.map((other) => (
-              <li key={getStudyItemId(other)}>
+              <li key={getStudyItemId(other)} className="flex items-center gap-2">
                 {/* Tapping a word opens it in the dictionary, like the look-up buttons */}
                 <button
                   type="button"
                   onClick={() => onLookUp(other)}
                   aria-label={t('practice.lookUpItem', { hanzi: other.entry.hanzi })}
-                  className="flex w-full flex-wrap items-baseline justify-center gap-x-3 gap-y-1 rounded-lg bg-paper px-3 py-2 hover:bg-accent-soft"
+                  className="flex min-w-0 flex-1 flex-wrap items-baseline justify-center gap-x-3 gap-y-1 rounded-lg bg-paper px-3 py-2 hover:bg-accent-soft"
                 >
                   <ToneHanzi entry={other.entry} className="text-xl" />{' '}
                   <PinyinText pinyin={formatPinyin(other.entry)} className="text-accent-strong" />{' '}
                   <span className="text-ink-muted">{getMeaningLabel(other)}</span>
                 </button>
+                <AudioButton item={other} className="size-8" />
               </li>
             ))}
           </ul>
