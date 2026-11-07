@@ -7,6 +7,10 @@ import { claimAudio, releaseAudio, stopAllAudio } from './playback.ts'
 type AudioButtonProps = {
   item: StudyItem
   className?: string
+  /** Start playing when the button appears (listening exercises). */
+  autoPlay?: boolean
+  /** Accessible label; use one that doesn't reveal the hanzi in listening exercises. */
+  label?: string
 }
 
 /**
@@ -15,20 +19,24 @@ type AudioButtonProps = {
  * requested on click; they live in public/audio. Nothing is rendered for
  * items without a recording.
  */
-export function AudioButton({ item, className = '' }: AudioButtonProps) {
+export function AudioButton({ item, className = '', autoPlay = false, label }: AudioButtonProps) {
   const sources = audioSources(item)
   if (sources.length === 0) return null
-  return <AudioButtonInner item={item} sources={sources} className={className} />
+  return <AudioButtonInner item={item} sources={sources} className={className} autoPlay={autoPlay} label={label} />
 }
 
 function AudioButtonInner({
   item,
   sources,
   className,
+  autoPlay,
+  label,
 }: AudioButtonProps & { sources: readonly string[] }) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const indexRef = useRef(0)
   const switching = useRef(false)
+  const autoPlayed = useRef(false)
+  const playRef = useRef<() => void>(() => {})
   const [playing, setPlaying] = useState(false)
   const [unavailable, setUnavailable] = useState(false)
 
@@ -42,8 +50,6 @@ function AudioButtonInner({
     }
   }, [])
 
-  if (unavailable) return null
-
   const playCurrent = () => {
     const audio = audioRef.current
     const source = sources[indexRef.current]
@@ -54,16 +60,19 @@ function AudioButtonInner({
     switching.current = true
     audio.src = source
     audio.currentTime = 0
-    void audio.play().then(
-      () => {
-        switching.current = false
-        setPlaying(true)
-      },
-      () => {
-        switching.current = false
-        setUnavailable(true)
-      },
-    )
+    void Promise.resolve()
+      .then(() => audio.play())
+      .then(
+        () => {
+          switching.current = false
+          setPlaying(true)
+        },
+        () => {
+          // Autoplay may be blocked; the button stays so the user can press it.
+          switching.current = false
+          setPlaying(false)
+        },
+      )
   }
 
   const play = () => {
@@ -76,6 +85,23 @@ function AudioButtonInner({
     playCurrent()
   }
 
+  // Keep the ref current for the autoplay effect without re-running it on
+  // every render.
+  useEffect(() => {
+    playRef.current = play
+  })
+
+  // Listening exercises start the audio by themselves. Browsers may block
+  // this until the user has interacted with the page; the button still works.
+  useEffect(() => {
+    if (!autoPlay || autoPlayed.current) return
+    autoPlayed.current = true
+    const timer = window.setTimeout(() => playRef.current(), 0)
+    return () => window.clearTimeout(timer)
+  }, [autoPlay])
+
+  if (unavailable) return null
+
   const onEnded = () => {
     indexRef.current += 1
     if (indexRef.current >= sources.length) {
@@ -85,15 +111,15 @@ function AudioButtonInner({
     playCurrent()
   }
 
-  const label = t('audio.play', { hanzi: item.entry.hanzi })
+  const buttonLabel = label ?? t('audio.play', { hanzi: item.entry.hanzi })
 
   return (
     <>
       <button
         type="button"
         onClick={play}
-        aria-label={label}
-        title={label}
+        aria-label={buttonLabel}
+        title={buttonLabel}
         className={`inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-ink-muted transition-colors hover:border-accent hover:text-accent-strong ${playing ? 'text-accent-strong' : ''} ${className}`}
       >
         <SpeakerIcon />

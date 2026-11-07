@@ -5,6 +5,8 @@ import type { ExerciseType } from './types.ts'
 export const EXERCISE_TYPE_LABELS: Record<ExerciseType, MessageKey> = {
   flashcard: 'exerciseType.flashcard',
   'meaning-choice': 'exerciseType.meaning',
+  'listening-choice': 'exerciseType.listeningChoice',
+  'listening-translate': 'exerciseType.listeningTranslate',
   'hanzi-choice': 'exerciseType.hanzi',
   'pinyin-choice': 'exerciseType.pinyin',
   'tone-choice': 'exerciseType.tones',
@@ -18,6 +20,8 @@ export const EXERCISE_TYPE_LABELS: Record<ExerciseType, MessageKey> = {
 export const EXERCISE_TYPE_HINTS: Record<ExerciseType, MessageKey> = {
   flashcard: 'exerciseType.flashcardHint',
   'meaning-choice': 'exerciseType.meaningHint',
+  'listening-choice': 'exerciseType.listeningChoiceHint',
+  'listening-translate': 'exerciseType.listeningTranslateHint',
   'hanzi-choice': 'exerciseType.hanziHint',
   'pinyin-choice': 'exerciseType.pinyinHint',
   'tone-choice': 'exerciseType.tonesHint',

@@ -16,6 +16,8 @@ export type RecognitionSkill = Exclude<Skill, 'writing'>
 export const EXERCISE_SKILLS: Record<ExerciseType, Skill> = {
   flashcard: 'meaning',
   'meaning-choice': 'meaning',
+  'listening-choice': 'meaning',
+  'listening-translate': 'meaning',
   'hanzi-choice': 'meaning',
   'pinyin-choice': 'pinyin',
   'tone-choice': 'tones',

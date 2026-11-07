@@ -1,3 +1,4 @@
+import { audioSources } from '../audio/audio.ts'
 import { getMeanings } from '../dictionary/dictionary.ts'
 import { getStudyItemId, type StudyItem } from '../dictionary/studyItem.ts'
 import { shuffle } from '../../lib/random.ts'
@@ -104,8 +105,11 @@ interface ChoiceRules {
 
 const hasMeaningLabel = (item: StudyItem) => getMeaningLabel(item) !== ''
 
+const MEANING_RULES: ChoiceRules = { isUsable: hasMeaningLabel, conflict: sharesMeaning }
+
 const CHOICE_RULES: Record<ChoiceExerciseType, ChoiceRules> = {
-  'meaning-choice': { isUsable: hasMeaningLabel, conflict: sharesMeaning },
+  'meaning-choice': MEANING_RULES,
+  'listening-choice': MEANING_RULES,
   'pinyin-choice': { isUsable: () => true, conflict: sharesReading },
   'hanzi-choice': {
     isUsable: hasMeaningLabel,
@@ -161,9 +165,17 @@ function createChoiceDefinition(type: ChoiceExerciseType): ExerciseDefinition<Ch
   }
 }
 
-export const meaningChoiceDefinition = createChoiceDefinition('meaning-choice')
+const meaningChoice = createChoiceDefinition('meaning-choice')
+
+export const meaningChoiceDefinition = meaningChoice
 export const pinyinChoiceDefinition = createChoiceDefinition('pinyin-choice')
 export const hanziChoiceDefinition = createChoiceDefinition('hanzi-choice')
+
+/** Like meaning-choice, but only for items with audio, and the hanzi stays hidden. */
+export const listeningChoiceDefinition: ExerciseDefinition<ChoiceExercise> = {
+  ...createChoiceDefinition('listening-choice'),
+  canBuild: (item, pool) => audioSources(item).length > 0 && meaningChoice.canBuild(item, pool),
+}
 
 /** Is this option the correct answer? */
 export function isCorrectOption(exercise: ChoiceExercise, option: StudyItem): boolean {

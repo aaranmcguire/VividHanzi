@@ -1,9 +1,15 @@
+import { audioSources } from '../audio/audio.ts'
 import type { StudyItem } from '../dictionary/studyItem.ts'
 import type { RandomFn } from '../../lib/random.ts'
-import { hanziChoiceDefinition, meaningChoiceDefinition, pinyinChoiceDefinition } from './choiceExercises.ts'
+import {
+  hanziChoiceDefinition,
+  listeningChoiceDefinition,
+  meaningChoiceDefinition,
+  pinyinChoiceDefinition,
+} from './choiceExercises.ts'
 import { matchMeaningDefinition, matchPinyinDefinition } from './matchExercises.ts'
 import { toneChoiceDefinition } from './toneExercises.ts'
-import type { Exercise, ExerciseType, FlashcardExercise } from './types.ts'
+import type { Exercise, ExerciseType, FlashcardExercise, ListeningTranslateExercise } from './types.ts'
 
 /**
  * How an exercise type is built. Each type knows whether it can be created
@@ -25,6 +31,13 @@ export const flashcardDefinition: ExerciseDefinition<FlashcardExercise> = {
   build: (item) => ({ type: 'flashcard', item }),
 }
 
+/** Listen to a word or character and type its meaning; only for items with audio. */
+export const listeningTranslateDefinition: ExerciseDefinition<ListeningTranslateExercise> = {
+  type: 'listening-translate',
+  canBuild: (item) => audioSources(item).length > 0,
+  build: (item) => ({ type: 'listening-translate', item }),
+}
+
 /**
  * Every exercise type, in the order Settings and Home list them. Writing and
  * sentence translation have no definition: writing is added when an item's
@@ -33,6 +46,8 @@ export const flashcardDefinition: ExerciseDefinition<FlashcardExercise> = {
 export const EXERCISE_TYPES: readonly ExerciseType[] = [
   'flashcard',
   'meaning-choice',
+  'listening-choice',
+  'listening-translate',
   'hanzi-choice',
   'pinyin-choice',
   'tone-choice',
@@ -46,6 +61,8 @@ export const EXERCISE_TYPES: readonly ExerciseType[] = [
 export const EXERCISE_DEFINITIONS: readonly ExerciseDefinition[] = [
   flashcardDefinition,
   meaningChoiceDefinition,
+  listeningChoiceDefinition,
+  listeningTranslateDefinition,
   pinyinChoiceDefinition,
   hanziChoiceDefinition,
   toneChoiceDefinition,

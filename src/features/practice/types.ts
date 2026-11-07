@@ -16,8 +16,14 @@ export interface FlashcardExercise {
  * - `meaning-choice`: the hanzi is shown and its meaning is picked.
  * - `pinyin-choice`: the hanzi is shown and its pinyin is picked.
  * - `hanzi-choice`: the meaning is shown and the hanzi is picked.
+ * - `listening-choice`: the audio is played and its meaning is picked; the
+ *   hanzi stays hidden until the answer is shown.
  */
-export type ChoiceExerciseType = 'meaning-choice' | 'pinyin-choice' | 'hanzi-choice'
+export type ChoiceExerciseType =
+  | 'meaning-choice'
+  | 'pinyin-choice'
+  | 'hanzi-choice'
+  | 'listening-choice'
 
 /** Multiple choice: one of the options is `item` and the rest are distractors. */
 export interface ChoiceExercise {
@@ -66,6 +72,16 @@ export interface WritingExercise {
 }
 
 /**
+ * Listening translation: the audio of a word or character is played and the
+ * user types its English meaning. The hanzi stays hidden until the answer is
+ * checked. The user grades the result after seeing the reference meanings.
+ */
+export interface ListeningTranslateExercise {
+  type: 'listening-translate'
+  item: StudyItem
+}
+
+/**
  * Sentence translation: a whole sentence built from learned words, centered
  * on `item`. The item's meaning progress records the answer, so it counts
  * like any other exercise while the sentence is practiced in context.
@@ -86,6 +102,7 @@ export type Exercise =
   | ToneExercise
   | MatchExercise
   | WritingExercise
+  | ListeningTranslateExercise
   | SentenceExercise
 
 export type ExerciseType = Exercise['type']

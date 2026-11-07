@@ -100,7 +100,29 @@ export function isSentenceOnly(types: readonly ExerciseType[]): boolean {
   return types.length > 0 && types.every((type) => type === 'sentence')
 }
 
-const PRE_SENTENCE_TYPES = EXERCISE_TYPES.filter((type) => type !== 'sentence')
+/** Only listening exercises chosen: sessions use items that have audio. */
+export function isListeningOnly(types: readonly ExerciseType[]): boolean {
+  return (
+    types.length > 0 &&
+    types.every((type) => type === 'listening-choice' || type === 'listening-translate')
+  )
+}
+
+/**
+ * The types that existed before sentence translation, for the version 1
+ * migration. Spelled out so types added later don't change what "everything"
+ * meant in an old save.
+ */
+const PRE_SENTENCE_TYPES: readonly ExerciseType[] = [
+  'flashcard',
+  'meaning-choice',
+  'hanzi-choice',
+  'pinyin-choice',
+  'tone-choice',
+  'match-pinyin',
+  'match-meaning',
+  'writing',
+]
 
 /**
  * The saved exercise types, in EXERCISE_TYPES order. Settings saved before

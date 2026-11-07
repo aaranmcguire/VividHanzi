@@ -7,6 +7,9 @@ import type { ExerciseDefinition } from './exerciseDefinitions.ts'
 import { applyHskLevel, createEmptyProgress, introduceItem, recordAnswer, recordWritingAnswer } from '../progress/progress.ts'
 import type { ProgressData } from '../progress/types.ts'
 import { hskStudyItems, hskWordItems } from '../dictionary/hskDictionary.ts'
+import { audioSources } from '../audio/audio.ts'
+import { listeningChoiceDefinition } from './choiceExercises.ts'
+import { listeningTranslateDefinition } from './exerciseDefinitions.ts'
 import { matchMeaningDefinition } from './matchExercises.ts'
 import {
   createSessionExercises,
@@ -112,6 +115,25 @@ describe('createSessionExercises with matching', () => {
 
     expect(exercise?.type).toBe('match-meaning')
     expect(exercise?.type === 'match-meaning' && exercise.items).toHaveLength(4)
+  })
+})
+
+describe('createSessionExercises with listening', () => {
+  const items = hskStudyItems.filter((item) => audioSources(item).length > 0).slice(0, 3)
+
+  it('builds listening exercises for items that have audio', () => {
+    const exercises = createSessionExercises(items, {
+      size: items.length,
+      random: seededRandom(4),
+      distractorPool: hskStudyItems,
+      definitions: [listeningChoiceDefinition, listeningTranslateDefinition],
+    })
+
+    expect(exercises).toHaveLength(items.length)
+    for (const exercise of exercises) {
+      expect(['listening-choice', 'listening-translate']).toContain(exercise.type)
+      expect(audioSources(exercise.item).length).toBeGreaterThan(0)
+    }
   })
 })
 

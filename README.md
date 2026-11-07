@@ -47,6 +47,9 @@ phone.
 - **Pronunciation audio:** hear words and characters with recordings from
   audio-cmn, bundled with the app so no external audio service is needed.
   Words without a whole-word recording fall back to their syllables.
+- **Listening practice:** hear a word and pick its meaning or type the
+  translation. The hanzi stays hidden until you answer, and the audio can be
+  replayed at any time.
 - **Tone colors** for hanzi and pinyin, **dark mode**, installable as an app
   on your home screen.
 - **Progress:** daily goal, activity calendar, streaks, accuracy charts,

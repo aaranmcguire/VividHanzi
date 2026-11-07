@@ -4,6 +4,7 @@ import { Button } from '../components/ui/Button.tsx'
 import { ButtonLink } from '../components/ui/ButtonLink.tsx'
 import { Card } from '../components/ui/Card.tsx'
 import { PageHeader } from '../components/ui/PageHeader.tsx'
+import { audioSources } from '../features/audio/audio.ts'
 import { CustomNotesView } from '../features/customSets/components/CustomNotesView.tsx'
 import { useCustomSet } from '../features/customSets/customSetsContext.ts'
 import { LoadEntries } from '../features/dictionary/components/LoadEntries.tsx'
@@ -22,7 +23,7 @@ import { selectWritingItems, WRITING_MIN_LEVEL } from '../features/practice/writ
 import { useProgress } from '../features/progress/progressContext.ts'
 import { getDifficultItems } from '../features/progress/stats.ts'
 import type { ProgressData } from '../features/progress/types.ts'
-import { isSentenceOnly, isWritingOnly, type Settings } from '../features/settings/settings.ts'
+import { isListeningOnly, isSentenceOnly, isWritingOnly, type Settings } from '../features/settings/settings.ts'
 import { useSettings } from '../features/settings/settingsContext.ts'
 import { useStudySets } from '../features/studySets/useStudySets.ts'
 import { SessionTypeLabel } from '../features/studySets/components/SessionTypeLabel.tsx'
@@ -48,7 +49,9 @@ function createPracticeSession(pool: readonly StudyItem[], progress: ProgressDat
     ? pool.filter(
         (item) => item.kind === 'word' && progress.items[getStudyItemId(item)] !== undefined,
       )
-    : pool
+    : isListeningOnly(settings.exerciseTypes)
+      ? pool.filter((item) => audioSources(item).length > 0)
+      : pool
   const exercises: Exercise[] = isWritingOnly(settings.exerciseTypes)
     ? selectWritingItems(practicePool, progress, new Date(), settings.sessionSize).map((item) => ({ type: 'writing', item }))
     : // Wrong answers come from the whole dictionary, even if the set is small
@@ -197,9 +200,11 @@ function TypeSession({ itemIds, definition }: { itemIds: readonly StudyItemId[];
   const [session, setSession] = useState(() => createSession(progress))
 
   if (session.exercises.length === 0) {
+    const listening =
+      definition.type === 'listening-choice' || definition.type === 'listening-translate'
     return (
       <Card className="mx-auto flex max-w-xl flex-col items-start gap-4">
-        <p className="text-lg">{t('practice.typeEmpty')}</p>
+        <p className="text-lg">{t(listening ? 'practice.listeningEmpty' : 'practice.typeEmpty')}</p>
         <ButtonLink to="/study" variant="secondary">
           {t('nav.study')}
         </ButtonLink>
@@ -557,5 +562,6 @@ function NothingToPractice({ message, onChooseTypes }: { message: string; onChoo
 function emptyPracticeMessage(types: Settings['exerciseTypes']): string {
   if (isSentenceOnly(types)) return t('practice.sentenceEmpty')
   if (isWritingOnly(types)) return t('practice.writingOnlyEmpty')
+  if (isListeningOnly(types)) return t('practice.listeningEmpty')
   return t('practice.nothingToPractice')
 }

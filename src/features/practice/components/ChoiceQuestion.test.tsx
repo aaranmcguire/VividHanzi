@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { StudyItem } from '../../dictionary/studyItem.ts'
 import type { Character } from '../../dictionary/types.ts'
 import type { ChoiceExercise, ChoiceExerciseType } from '../types.ts'
@@ -30,6 +30,10 @@ function renderQuestion(type: ChoiceExerciseType, onAnswer = vi.fn()) {
   )
   return onAnswer
 }
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 function getOptions() {
   return within(screen.getByRole('list', { name: 'Options' })).getAllByRole('button')
@@ -63,6 +67,21 @@ describe('ChoiceQuestion', () => {
     // The hanzi only appears in the options, not in the question
     expect(screen.getAllByText('二')).toHaveLength(1)
     expect(getOptions().map(optionText)).toEqual(['一', '二', '三', '四'])
+  })
+
+  it('listening-choice: plays the audio and hides the hanzi until answered', async () => {
+    const user = userEvent.setup()
+    const play = vi.spyOn(window.HTMLMediaElement.prototype, 'play').mockResolvedValue()
+    vi.spyOn(window.HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
+    renderQuestion('listening-choice')
+
+    expect(screen.getByRole('heading', { name: 'What did you hear?' })).toBeInTheDocument()
+    expect(screen.queryByText('二')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Play the audio again' })).toBeInTheDocument()
+    await vi.waitFor(() => expect(play).toHaveBeenCalled())
+
+    await user.click(screen.getByRole('button', { name: 'two' }))
+    expect(screen.getAllByText('二').length).toBeGreaterThan(0)
   })
 
   it('on a correct answer says so, marks the option and "Continue" answers true', async () => {

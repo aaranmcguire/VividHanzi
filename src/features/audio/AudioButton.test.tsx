@@ -34,4 +34,13 @@ describe('AudioButton', () => {
 
     expect(container).toBeEmptyDOMElement()
   })
+
+  it('starts playing by itself for listening exercises', async () => {
+    const play = vi.spyOn(window.HTMLMediaElement.prototype, 'play').mockResolvedValue()
+    vi.spyOn(window.HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
+    render(<AudioButton item={thanks} autoPlay label="Play the audio again" />)
+
+    await vi.waitFor(() => expect(play).toHaveBeenCalled())
+    expect(screen.getByRole('button', { name: 'Play the audio again' })).toBeInTheDocument()
+  })
 })

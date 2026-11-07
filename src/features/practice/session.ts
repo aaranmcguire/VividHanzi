@@ -227,6 +227,7 @@ export function createRetryExercise(exercise: Exercise): Exercise {
     case 'flashcard':
     case 'writing':
     case 'sentence':
+    case 'listening-translate':
       return exercise
     case 'tone-choice':
       return { ...exercise, options: rotate(exercise.options) }

@@ -49,6 +49,25 @@ describe('PracticePage', () => {
     expect(screen.getByRole('button', { name: 'Show the translation' })).toBeInTheDocument()
   })
 
+  it('runs a listening-only session with items that have audio', async () => {
+    const user = userEvent.setup()
+    const storage = memoryStorage()
+    const items = hskWordItems.flatMap((item) =>
+      item.entry.hskLevel === undefined
+        ? []
+        : [{ itemId: getStudyItemId(item), hskLevel: item.entry.hskLevel }],
+    )
+    saveProgress(applyHskLevel(createEmptyProgress(), items, 1, new Date()), storage)
+    saveSettings({ ...DEFAULT_SETTINGS, exerciseTypes: ['listening-choice'], sessionSize: 5 }, storage)
+    renderWithProviders(<PracticePage />, { storage })
+    await startSession(user)
+
+    expect(screen.getByRole('heading', { name: 'What did you hear?' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Play the audio again' })).toBeInTheDocument()
+    // The hanzi stays hidden until an option is picked
+    expect(screen.queryByRole('button', { name: /^Play pronunciation of/ })).not.toBeInTheDocument()
+  })
+
   it('saves each answer to progress', async () => {
     const user = userEvent.setup()
     const storage = memoryStorage()

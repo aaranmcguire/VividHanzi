@@ -4,6 +4,7 @@ import type { SkillResults } from '../../progress/skills.ts'
 import type { Exercise } from '../types.ts'
 import { ChoiceQuestion } from './ChoiceQuestion.tsx'
 import { Flashcard } from './Flashcard.tsx'
+import { ListeningTranslateQuestion } from './ListeningTranslateQuestion.tsx'
 import { MatchQuestion } from './MatchQuestion.tsx'
 import { SentenceExerciseView } from './SentenceExerciseView.tsx'
 import { ToneQuestion } from './ToneQuestion.tsx'
@@ -32,7 +33,17 @@ export function ExerciseView({ exercise, dictionary, onAnswer, onSkip, onLookUp 
     case 'meaning-choice':
     case 'pinyin-choice':
     case 'hanzi-choice':
+    case 'listening-choice':
       return <ChoiceQuestion exercise={exercise} dictionary={dictionary} onAnswer={onAnswer} onLookUp={onLookUp} />
+    case 'listening-translate':
+      return (
+        <ListeningTranslateQuestion
+          exercise={exercise}
+          dictionary={dictionary}
+          onAnswer={onAnswer}
+          onLookUp={onLookUp}
+        />
+      )
     case 'tone-choice':
       return <ToneQuestion exercise={exercise} dictionary={dictionary} onAnswer={onAnswer} onLookUp={onLookUp} />
     case 'match-pinyin':

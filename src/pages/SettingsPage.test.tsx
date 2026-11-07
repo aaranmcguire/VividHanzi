@@ -146,6 +146,8 @@ describe('SettingsPage', () => {
     for (const name of [
       /^Flashcards/,
       /^Meaning/,
+      /^Listening choice/,
+      /^Listening translation/,
       /^Hanzi/,
       /^Pinyin/,
       /^Match pinyin/,

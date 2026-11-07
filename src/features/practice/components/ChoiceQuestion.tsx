@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Card } from '../../../components/ui/Card.tsx'
 import { t, type MessageKey } from '../../../i18n/index.ts'
+import { AudioButton } from '../../audio/AudioButton.tsx'
 import type { Dictionary } from '../../dictionary/dictionary.ts'
 import { getStudyItemId, type StudyItem } from '../../dictionary/studyItem.ts'
 import { getMeaningLabel, getPinyinLabel, isCorrectOption } from '../choiceExercises.ts'
@@ -14,6 +15,7 @@ const QUESTIONS: Record<ChoiceExerciseType, MessageKey> = {
   'meaning-choice': 'practice.choice.meaningQuestion',
   'pinyin-choice': 'practice.choice.pinyinQuestion',
   'hanzi-choice': 'practice.choice.hanziQuestion',
+  'listening-choice': 'practice.choice.listeningQuestion',
 }
 
 type ChoiceQuestionProps = {
@@ -42,7 +44,17 @@ export function ChoiceQuestion({ exercise, dictionary, onAnswer, onLookUp }: Cho
         <p className="text-sm font-medium tracking-wide text-ink-muted uppercase">
           {t(item.kind === 'character' ? 'practice.kind.character' : 'practice.kind.word')}
         </p>
-        {type === 'hanzi-choice' ? (
+        {type === 'listening-choice' ? (
+          <div className="flex flex-col items-center gap-2">
+            <AudioButton
+              item={item}
+              autoPlay
+              label={t('audio.playListening')}
+              className="size-16 [&_svg]:size-8"
+            />
+            <p className="text-sm text-ink-muted">{t('practice.listening.replayHint')}</p>
+          </div>
+        ) : type === 'hanzi-choice' ? (
           <p className="text-2xl font-medium">{getMeaningLabel(item)}</p>
         ) : (
           // If the question is about pronunciation, tone colors do not appear until answered

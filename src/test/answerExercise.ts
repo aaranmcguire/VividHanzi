@@ -16,6 +16,13 @@ export async function answerCurrentExercise(user: ReturnType<typeof userEvent.se
     await user.click(screen.getByRole('button', { name: 'I got it right' }))
     return
   }
+  const listeningAnswer = screen.queryByLabelText('Your answer in English')
+  if (listeningAnswer) {
+    await user.type(listeningAnswer, 'answer')
+    await user.click(screen.getByRole('button', { name: 'Check' }))
+    await user.click(screen.getByRole('button', { name: 'I got it right' }))
+    return
+  }
   const showAnswer = screen.queryByRole('button', { name: 'Show answer' })
   if (showAnswer) {
     await user.click(showAnswer)

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { memoryStorage } from '../../test/memoryStorage.ts'
 import { EXERCISE_TYPES } from '../practice/exerciseDefinitions.ts'
-import { DEFAULT_SETTINGS, isSessionSize, loadSettings, saveSettings } from './settings.ts'
+import { DEFAULT_SETTINGS, isListeningOnly, isSessionSize, loadSettings, saveSettings } from './settings.ts'
 
 describe('saveSettings / loadSettings', () => {
   it('saves and loads settings', () => {
@@ -69,5 +69,14 @@ describe('isSessionSize', () => {
     expect(isSessionSize(5)).toBe(true)
     expect(isSessionSize(7)).toBe(false)
     expect(isSessionSize('10')).toBe(false)
+  })
+})
+
+describe('isListeningOnly', () => {
+  it('is true only when every chosen type is a listening one', () => {
+    expect(isListeningOnly(['listening-choice'])).toBe(true)
+    expect(isListeningOnly(['listening-choice', 'listening-translate'])).toBe(true)
+    expect(isListeningOnly(['listening-choice', 'flashcard'])).toBe(false)
+    expect(isListeningOnly([])).toBe(false)
   })
 })

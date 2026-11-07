@@ -9,6 +9,7 @@ import {
   getPinyinLabel,
   hanziChoiceDefinition,
   isCorrectOption,
+  listeningChoiceDefinition,
   meaningChoiceDefinition,
   pickDistractors,
   pinyinChoiceDefinition,
@@ -126,7 +127,12 @@ describe('multiple-choice definitions', () => {
     character(hanzi, [`p${index}`], [`number ${index + 1}`]),
   )
 
-  it.each([meaningChoiceDefinition, pinyinChoiceDefinition, hanziChoiceDefinition])(
+  it.each([
+    meaningChoiceDefinition,
+    listeningChoiceDefinition,
+    pinyinChoiceDefinition,
+    hanziChoiceDefinition,
+  ])(
     '$type creates four distinct options with the answer among them',
     (definition) => {
       const item = pool[0]!
@@ -150,6 +156,12 @@ describe('multiple-choice definitions', () => {
 
   it('cannot be built without enough distractors', () => {
     expect(meaningChoiceDefinition.canBuild(pool[0]!, pool.slice(0, CHOICE_OPTION_COUNT - 1))).toBe(false)
+  })
+
+  it('listening questions need a recording', () => {
+    const silent = word('测试词', 'cè shì cí', ['test word'])
+    expect(listeningChoiceDefinition.canBuild(silent, [...pool, silent])).toBe(false)
+    expect(listeningChoiceDefinition.canBuild(pool[0]!, pool)).toBe(true)
   })
 
   it('does not ask about meanings that reveal the hanzi', () => {
