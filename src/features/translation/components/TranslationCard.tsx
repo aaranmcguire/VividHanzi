@@ -5,6 +5,7 @@ import { t, type MessageKey } from '../../../i18n/index.ts'
 import { getMeanings } from '../../dictionary/dictionary.ts'
 import { PinyinText } from '../../dictionary/components/PinyinText.tsx'
 import { ToneHanzi } from '../../dictionary/components/ToneHanzi.tsx'
+import { AudioButton } from '../../audio/AudioButton.tsx'
 import { useSettings } from '../../settings/settingsContext.ts'
 import {
   AiRequestError,
@@ -352,6 +353,10 @@ function WordBreakdown({ words }: { words: readonly SentenceWord[] }) {
             <ToneHanzi entry={word.word} className="text-xl" />
             <PinyinText pinyin={word.word.pinyin} className="text-sm text-accent-strong" />
             <span className="text-sm text-ink-muted">{getMeanings(word.word.meanings)[0]}</span>
+            <AudioButton
+              item={{ kind: 'word', entry: word.word }}
+              className="ml-auto size-8"
+            />
           </li>
         ))}
       </ul>

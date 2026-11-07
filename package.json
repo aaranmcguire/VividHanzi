@@ -22,7 +22,8 @@
     "data:release": "node scripts/dataset/release.ts",
     "seo:pages": "node scripts/seo/prerender.ts",
     "db:migrate": "npx wrangler d1 execute vividhanzi --remote --file=./migrations/0001_user_state.sql",
-    "db:migrate:local": "npx wrangler d1 execute vividhanzi --local --file=./migrations/0001_user_state.sql"
+    "db:migrate:local": "npx wrangler d1 execute vividhanzi --local --file=./migrations/0001_user_state.sql",
+    "audio:import": "node scripts/audio/import.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

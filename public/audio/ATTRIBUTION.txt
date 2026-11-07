@@ -1,0 +1,8 @@
+Pronunciation audio from audio-cmn
+https://github.com/hugolpz/audio-cmn
+
+Files: copied unchanged from 24k-abr/hsk/cmn-*.mp3
+Speakers: Chen Wang, Yue Tan
+License: CC BY-SA (see the source repository for the license and attribution)
+
+Only the recordings matching VividHanzi's words and characters are included.

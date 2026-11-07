@@ -6,6 +6,7 @@ import { t } from '../../../i18n/index.ts'
 import { GrammarNotes } from '../../grammar/components/GrammarNotes.tsx'
 import { formatPinyin, getMeanings, getOtherReadings, getTraditionalForms, type Dictionary } from '../dictionary.ts'
 import { getRelatedItems, getStudyItemId, type StudyItem } from '../studyItem.ts'
+import { AudioButton } from '../../audio/AudioButton.tsx'
 import { CharacterFacts } from './CharacterFacts.tsx'
 import { EntryLabel } from './EntryLabel.tsx'
 import { PinyinText } from './PinyinText.tsx'
@@ -41,9 +42,12 @@ export function EntryDetails({ item, dictionary, opener }: EntryDetailsProps) {
     <Card className="flex flex-col gap-4 sm:gap-6">
       <div className="flex flex-col items-center gap-2 text-center">
         <ToneHanzi entry={item.entry} className="text-7xl leading-tight sm:text-8xl" />
-        <p className="text-2xl font-medium text-accent-strong">
-          <PinyinText pinyin={formatPinyin(item.entry)} />
-        </p>
+        <div className="flex items-center justify-center gap-3">
+          <p className="text-2xl font-medium text-accent-strong">
+            <PinyinText pinyin={formatPinyin(item.entry)} />
+          </p>
+          <AudioButton item={item} />
+        </div>
         {item.kind === 'word' && traditional.length > 0 && (
           <p className="text-ink-muted">
             {t('dictionary.traditional')}{' '}

@@ -7,6 +7,7 @@ import type { StudyItem } from '../../dictionary/studyItem.ts'
 import type { SessionSummary as Summary } from '../session.ts'
 import { PinyinText } from '../../dictionary/components/PinyinText.tsx'
 import { ToneHanzi } from '../../dictionary/components/ToneHanzi.tsx'
+import { AudioButton } from '../../audio/AudioButton.tsx'
 import { SentenceText } from '../../translation/components/SentenceText.tsx'
 import type { BuiltSentence } from '../../translation/types.ts'
 import { BackButton } from './BackButton.tsx'
@@ -47,6 +48,7 @@ export function SessionSummary({
                 <ToneHanzi entry={item.entry} className="text-2xl" />
                 <PinyinText pinyin={formatPinyin(item.entry)} className="text-accent-strong" />
                 <span className="text-ink-muted">{getMeanings(item.entry.meanings)[0]}</span>
+                <AudioButton item={item} className="ml-auto" />
               </li>
             ))}
           </ul>

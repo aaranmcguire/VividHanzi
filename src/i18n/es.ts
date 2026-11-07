@@ -128,6 +128,7 @@ export const es: Record<MessageKey, string> = {
   'dictionary.searchPlaceholder': 'Hanzi, pinyin o significado',
   'dictionary.showing': 'Mostrando {count} de {total}',
   'dictionary.noResults': 'Sin resultados. Prueba con pinyin sin tonos o una palabra en inglés.',
+  'audio.play': 'Escuchar la pronunciación de {hanzi}',
   'dictionary.meanings': 'Significados',
   'dictionary.characterInfo': 'Carácter',
   'dictionary.traditional': 'Tradicional',

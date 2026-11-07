@@ -8,6 +8,7 @@ import { getRelatedItems, type StudyItem } from '../../dictionary/studyItem.ts'
 import type { SkillResults } from '../../progress/skills.ts'
 import { useSessionShortcuts } from '../shortcuts.ts'
 import type { FlashcardExercise } from '../types.ts'
+import { AudioButton } from '../../audio/AudioButton.tsx'
 import { LookUpButtons } from './LookUpButtons.tsx'
 import { PinyinText } from '../../dictionary/components/PinyinText.tsx'
 import { ToneHanzi } from '../../dictionary/components/ToneHanzi.tsx'
@@ -101,9 +102,12 @@ function FlashcardAnswer({ item, dictionary }: { item: StudyItem; dictionary: Di
 
   return (
     <div className="flex w-full flex-col items-center gap-4">
-      <p className="text-2xl font-medium text-accent-strong">
-        <PinyinText pinyin={formatPinyin(item.entry)} />
-      </p>
+      <div className="flex items-center justify-center gap-3">
+        <p className="text-2xl font-medium text-accent-strong">
+          <PinyinText pinyin={formatPinyin(item.entry)} />
+        </p>
+        <AudioButton item={item} />
+      </div>
       <ul className="space-y-1 text-lg">
         {getMeanings(item.entry.meanings).map((meaning) => (
           <li key={meaning}>{meaning}</li>

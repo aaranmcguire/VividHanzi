@@ -42,6 +42,8 @@ phone.
   animation, radicals, components, etymology and example sentences where every
   word is tappable.
 - **Grammar notes** for 30 common particles and patterns, with examples.
+- **Pronunciation audio:** hear words and characters with recordings from
+  audio-cmn, bundled with the app so no external audio service is needed.
 - **Tone colors** for hanzi and pinyin, **dark mode**, installable as an app
   on your home screen.
 - **Progress:** daily goal, activity calendar, streaks, accuracy charts,
@@ -171,6 +173,9 @@ nothing is written by hand or by AI. Thanks to the people behind them:
 - Components and etymology: [Make Me a Hanzi](https://github.com/skishore/makemeahanzi) (LGPL 3.0+).
 - Stroke order and stroke count: [hanzi-writer-data](https://github.com/chanind/hanzi-writer-data) (Arphic Public License).
 - Example sentences: [Tatoeba](https://tatoeba.org) (CC BY 2.0 FR).
+- Pronunciation audio: [audio-cmn](https://github.com/hugolpz/audio-cmn)
+  (CC BY-SA), recorded by Chen Wang and Yue Tan. See
+  [`public/audio/ATTRIBUTION.txt`](public/audio/ATTRIBUTION.txt).
 - Word frequency: [wordfreq](https://github.com/rspeer/wordfreq) (data CC BY-SA 4.0).
 - Grammar notes are original explanations; the
   [Chinese Grammar Wiki](https://resources.allsetlearning.com/chinese/grammar/)

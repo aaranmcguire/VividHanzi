@@ -6,6 +6,7 @@ import { t } from '../../../i18n/index.ts'
 import { StatusBadge } from '../../progress/components/StatusBadge.tsx'
 import { useProgress } from '../../progress/progressContext.ts'
 import type { ProgressData } from '../../progress/types.ts'
+import { AudioButton } from '../../audio/AudioButton.tsx'
 import { EntryDetails } from '../../dictionary/components/EntryDetails.tsx'
 import { EntryLabel } from '../../dictionary/components/EntryLabel.tsx'
 import type { Dictionary } from '../../dictionary/dictionary.ts'
@@ -76,13 +77,19 @@ export function LearnSession({
           <ul className="divide-y divide-line">
             {learned.map(({ item: learnedItem, choice }) => (
               <li key={getStudyItemId(learnedItem)} className="flex items-center justify-between gap-3 py-2">
-                <EntryLabel entry={learnedItem.entry} withMeaning />
+                <div className="flex min-w-0 items-center gap-2">
+                  <EntryLabel entry={learnedItem.entry} withMeaning />
+                  <AudioButton item={learnedItem} />
+                </div>
                 {choice === 'known' && <StatusBadge status="mastered" />}
               </li>
             ))}
             {excluded.map(({ item: excludedItem }) => (
               <li key={getStudyItemId(excludedItem)} className="flex items-center justify-between gap-3 py-2">
-                <EntryLabel entry={excludedItem.entry} withMeaning />
+                <div className="flex min-w-0 items-center gap-2">
+                  <EntryLabel entry={excludedItem.entry} withMeaning />
+                  <AudioButton item={excludedItem} />
+                </div>
                 <StatusBadge status="excluded" />
               </li>
             ))}

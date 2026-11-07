@@ -128,6 +128,7 @@ export const en = {
   'dictionary.searchPlaceholder': 'Hanzi, pinyin or meaning',
   'dictionary.showing': 'Showing {count} of {total}',
   'dictionary.noResults': 'No matches. Try pinyin without tones or an English word.',
+  'audio.play': 'Play pronunciation of {hanzi}',
   'dictionary.meanings': 'Meanings',
   'dictionary.characterInfo': 'Character',
   'dictionary.traditional': 'Traditional',
