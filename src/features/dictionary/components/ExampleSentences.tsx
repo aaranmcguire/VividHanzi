@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
+import { Button } from '../../../components/ui/Button.tsx'
 import { HanziText } from '../../../components/ui/HanziText.tsx'
+import { SentenceAudioButton } from '../../audio/SentenceAudioButton.tsx'
 import { AnnotatedSentence, UncertainNote } from '../../customSets/components/SentenceView.tsx'
 import { countUncertain } from '../../customSets/sentences.ts'
 import { processSentence } from '../../customSets/sentenceProcessing.ts'
 import type { SentenceToken } from '../../customSets/types.ts'
 import { t } from '../../../i18n/index.ts'
 import { useDictionaryStore, useLoadText } from '../dictionaryContext.ts'
-import { tatoebaSentenceUrl } from '../examples.ts'
+import { EXAMPLES_PAGE_SIZE, INITIAL_EXAMPLES_SHOWN, tatoebaSentenceUrl } from '../examples.ts'
 import { loadExamples, type Examples } from '../runtime/dictionaryService.ts'
 import { useRuntimeData } from '../runtime/runtimeSourcesContext.ts'
 import { segmentSentence } from '../segmentation.ts'
@@ -17,15 +19,19 @@ import type { EntryOpener } from './EntryLink.tsx'
 
 /**
  * Example sentences from Tatoeba, with their pinyin and each sentence's link
- * and author as its license requires. Requested from the dictionary service when the entry page opens (Tatoeba at
- * runtime, or the local HSK sentences). If there are no sentences, nothing
- * is shown; if they couldn't be fetched, it says so. Pronunciations that
- * couldn't be determined are counted in one note at the end of the block.
+ * and author as its license requires. HSK 1-4 entries use the bundled files;
+ * other entries ask the Tatoeba API. The first few are shown, with a button
+ * for the rest. If there are no sentences, nothing is shown; if they
+ * couldn't be fetched, it says so. Pronunciations that couldn't be determined
+ * are counted in one note at the end of the block.
  */
 export function ExampleSentences({ item, opener }: { item: StudyItem; opener: EntryOpener }) {
   const itemId = getStudyItemId(item)
   const examples = useRuntimeData<Examples>(itemId, (sources, options) => loadExamples(sources, item, options))
   const uncertain = useUncertainCounts()
+  // A new entry starts with the first few sentences again.
+  const [shown, setShown] = useState({ itemId, count: INITIAL_EXAMPLES_SHOWN })
+  const shownCount = shown.itemId === itemId ? shown.count : INITIAL_EXAMPLES_SHOWN
 
   if (examples.status === 'unavailable') {
     return (
@@ -38,19 +44,25 @@ export function ExampleSentences({ item, opener }: { item: StudyItem; opener: En
   if (examples.status !== 'ready') return null
   const { sentences, license } = examples.data
   const keyOf = (tatoebaId: number) => `${itemId}-${tatoebaId}`
+  const visible = sentences.slice(0, shownCount)
 
   return (
     <section>
       <h2 className="mb-2 text-lg font-semibold">{t('dictionary.examples')}</h2>
       <ul className="flex flex-col gap-4">
-        {sentences.map((example) => (
+        {visible.map((example) => (
           <li key={keyOf(example.tatoebaId)}>
-            <ExampleText
-              chinese={example.zh}
-              opener={opener}
-              onUncertain={(count) => uncertain.report(keyOf(example.tatoebaId), count)}
-            />
-            <p>{example.en}</p>
+            <div className="flex items-start gap-2">
+              <div className="min-w-0 flex-1">
+                <ExampleText
+                  chinese={example.zh}
+                  opener={opener}
+                  onUncertain={(count) => uncertain.report(keyOf(example.tatoebaId), count)}
+                />
+                <p>{example.en}</p>
+              </div>
+              <SentenceAudioButton sentence={example} className="mt-1" />
+            </div>
             <p className="text-sm text-ink-muted">
               <a
                 href={tatoebaSentenceUrl(example.tatoebaId)}
@@ -61,12 +73,36 @@ export function ExampleSentences({ item, opener }: { item: StudyItem; opener: En
                   author: example.author,
                 })}
               </a>
+              {example.audio && (
+                <>
+                  {' · '}
+                  <span>
+                    {t('dictionary.exampleAudioAttribution', {
+                      author: example.audio.author,
+                      license: example.audio.license,
+                    })}
+                  </span>
+                </>
+              )}
             </p>
           </li>
         ))}
       </ul>
+      {shownCount < sentences.length && (
+        <Button
+          variant="secondary"
+          className="mt-3"
+          onClick={() =>
+            setShown({ itemId, count: Math.min(shownCount + EXAMPLES_PAGE_SIZE, sentences.length) })
+          }
+        >
+          {t('dictionary.showMoreExamples', {
+            count: Math.min(EXAMPLES_PAGE_SIZE, sentences.length - shownCount),
+          })}
+        </Button>
+      )}
       <div className="mt-3">
-        <UncertainNote count={uncertain.total(sentences.map((example) => keyOf(example.tatoebaId)))} />
+        <UncertainNote count={uncertain.total(visible.map((example) => keyOf(example.tatoebaId)))} />
       </div>
       <p className="mt-3 text-sm text-ink-muted">{t('dictionary.examplesLicense', { license })}</p>
     </section>

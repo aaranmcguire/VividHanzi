@@ -93,6 +93,18 @@ export interface Word {
   frequencyRank?: number
 }
 
+/** A Tatoeba recording of an example sentence, under a reusable license. */
+export interface ExampleAudio {
+  /** Tatoeba audio id: https://tatoeba.org/audio/download/{tatoebaAudioId}. */
+  tatoebaAudioId: number
+  /** Tatoeba user who recorded it. */
+  author: string
+  /** The license chosen by the recorder, e.g. CC BY-NC 4.0. */
+  license: string
+  /** Tatoeba profile or attribution URL, when the export has one. */
+  attributionUrl?: string
+}
+
 /**
  * An example sentence from Tatoeba with its English translation. The ids
  * and authors of both sentences are kept so they can be attributed and linked.
@@ -108,6 +120,8 @@ export interface ExampleSentence {
   translationAuthor?: string
   /** Dataset words the sentence was chosen as an example for. */
   words: string[]
+  /** A recording of the sentence, when Tatoeba has one we may reuse. */
+  audio?: ExampleAudio
   /** Kept only because a grammar note quotes it: no word uses it as an example. */
   grammarOnly?: true
 }

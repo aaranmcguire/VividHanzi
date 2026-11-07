@@ -39,8 +39,10 @@ phone.
   paid Workers plan.
 - **Writing practice** stroke by stroke with hints, sized for phones.
 - **Full dictionary** (CC-CEDICT, about 118,000 entries): stroke order
-  animation, radicals, components, etymology and example sentences where every
-  word is tappable.
+  animation, radicals, components, etymology and up to 20 Tatoeba example
+  sentences per HSK 1-4 word, where every word is tappable.
+- **Sentence audio:** each example sentence has a speaker button: a Tatoeba
+  recording when one is available, otherwise the browser's Chinese voice.
 - **Grammar notes** for 30 common particles and patterns, with examples.
 - **Pronunciation audio:** hear words and characters with recordings from
   audio-cmn, bundled with the app so no external audio service is needed.
@@ -88,6 +90,7 @@ accounts. See [`docs/ACCOUNTS.md`](docs/ACCOUNTS.md).
 | `npm run check` | Types + lint + tests (the same thing CI runs) |
 | `npm run data:fetch` | Downloads the dataset sources (HSK list, CC-CEDICT, Unihan, Make Me a Hanzi, Tatoeba) |
 | `npm run data:build` | Regenerates the dataset in `src/data/`, `public/strokes/` and `public/examples/` (see `docs/DATA_SOURCES.md`) |
+| `npm run examples:build` | Rebuilds only the HSK 1-4 example sentences and licensed Tatoeba audio (add `-- --no-audio` to skip downloads) |
 | `npm run data:validate` | Validates the generated dataset without downloading anything |
 | `npm run seo:pages` | After a build, writes a static page per HSK character and word, `sitemap.xml` and `robots.txt` into `dist/` (needs `SITE_URL`; the Deploy workflow runs it) |
 | `npm run db:migrate` | Applies the D1 schema to the remote database |
@@ -173,7 +176,11 @@ nothing is written by hand or by AI. Thanks to the people behind them:
 - Radicals and traditional forms of characters: [Unihan](https://www.unicode.org/reports/tr38/) (Unicode License v3).
 - Components and etymology: [Make Me a Hanzi](https://github.com/skishore/makemeahanzi) (LGPL 3.0+).
 - Stroke order and stroke count: [hanzi-writer-data](https://github.com/chanind/hanzi-writer-data) (Arphic Public License).
-- Example sentences: [Tatoeba](https://tatoeba.org) (CC BY 2.0 FR).
+- Example sentences: [Tatoeba](https://tatoeba.org) (CC BY 2.0 FR), with
+  Tatoeba sentence recordings where their recorder chose a reusable license
+  (CC BY-NC 4.0 at the time of import; those files are non-commercial and are
+  not covered by the app's MIT license). See
+  [`public/audio/sentences/ATTRIBUTION.txt`](public/audio/sentences/ATTRIBUTION.txt).
 - Pronunciation audio: [audio-cmn](https://github.com/hugolpz/audio-cmn)
   (CC BY-SA), recorded by Chen Wang and Yue Tan. See
   [`public/audio/ATTRIBUTION.txt`](public/audio/ATTRIBUTION.txt).

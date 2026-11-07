@@ -20,8 +20,9 @@ import { fetchTatoebaExamples, TATOEBA_LICENSE } from './tatoebaSource.ts'
  *
  * 1. Up-to-date cache (IndexedDB).
  * 2. Expired cache (refreshed in the background).
- * 3. The source's API.
- * 4. The local HSK 1-4 data (public/strokes/, public/examples/).
+ * 3. The source's API (for example sentences, only outside HSK 1-4).
+ * 4. The local HSK 1-4 data (public/strokes/, public/examples/); example
+ *    sentences use it before the API.
  * 5. "Unavailable": the entry page says so and makes nothing up.
  */
 
@@ -155,8 +156,10 @@ export function pickExamples(
 }
 
 /**
- * Example sentences for a character or word: Tatoeba at runtime and, if
- * that fails or there are none, the local sentences for its HSK level.
+ * Example sentences for a character or word. HSK 1-4 entries use the
+ * bundled sentence files first: they are offline, have up to 20 sentences
+ * per word and include the Tatoeba recordings we may reuse. The Tatoeba API
+ * is used for the full dictionary and when the local file has no sentences.
  */
 export async function loadExamples(
   sources: RuntimeSources,
@@ -178,6 +181,24 @@ export async function loadExamples(
           stale: resource.stale,
         }
 
+  const level = item.entry.hskLevel
+  if (level !== undefined) {
+    try {
+      const set = await loadExampleSet(level, sources.fetchFn)
+      const sentences = getExamplesFor(set, item, words)
+      if (sentences.length > 0) {
+        return {
+          status: 'ready',
+          data: { sentences, license: set.license },
+          source: 'public/examples (HSK 1-4)',
+          stale: false,
+        }
+      }
+    } catch {
+      // No local copy: ask Tatoeba at runtime
+    }
+  }
+
   let remote: Availability<Examples> = { status: 'unavailable' }
   try {
     const resource = await sources.resources.load({
@@ -195,28 +216,9 @@ export async function loadExamples(
       },
     })
     remote = toResult(resource)
-    if (remote.status === 'ready') return remote
   } catch (error) {
     rethrowAbort(error)
     if (isMissing(error)) remote = { status: 'missing' }
-  }
-
-  const level = item.entry.hskLevel
-  if (level !== undefined) {
-    try {
-      const set = await loadExampleSet(level, sources.fetchFn)
-      const sentences = getExamplesFor(set, item, words)
-      if (sentences.length > 0) {
-        return {
-          status: 'ready',
-          data: { sentences, license: set.license },
-          source: 'public/examples (HSK 1-4)',
-          stale: false,
-        }
-      }
-    } catch {
-      // No local copy: keep what the remote source said
-    }
   }
   return remote
 }

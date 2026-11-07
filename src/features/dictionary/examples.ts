@@ -2,8 +2,14 @@ import { rankExamples, type WordList } from './exampleChoice.ts'
 import type { StudyItem } from './studyItem.ts'
 import type { ExampleSentence, ExampleSet, HskLevel } from './types.ts'
 
+/** Sentences shown before "Show more" on an entry page. */
+export const INITIAL_EXAMPLES_SHOWN = 3
+
 /** Maximum number of example sentences shown on an entry page. */
-export const MAX_EXAMPLES_SHOWN = 3
+export const MAX_EXAMPLES_SHOWN = 20
+
+/** More sentences revealed by each press of "Show more". */
+export const EXAMPLES_PAGE_SIZE = 10
 
 /**
  * Loads a level's example sentences (public/examples/hsk1.json, generated

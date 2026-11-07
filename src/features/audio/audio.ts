@@ -23,6 +23,11 @@ export function syllableUrl(syllable: string): string {
   return `${import.meta.env.BASE_URL}audio/syllables/cmn-${encodeURIComponent(syllable)}.mp3`
 }
 
+/** A bundled Tatoeba recording of a sentence (public/audio/sentences). */
+export function sentenceAudioUrl(tatoebaAudioId: number): string {
+  return `${import.meta.env.BASE_URL}audio/sentences/tatoeba-${tatoebaAudioId}.mp3`
+}
+
 /**
  * The recording(s) for an item: the whole word when there is one, otherwise
  * its syllables (还 huán → huan2, 北京 → bei3 jing1). The syllable fallback

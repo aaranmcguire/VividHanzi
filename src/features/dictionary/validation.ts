@@ -132,6 +132,13 @@ export function validateExampleSet(set: ExampleSet, words: readonly Word[]): str
     seen.add(sentence.tatoebaId)
     if (isBlank(sentence.zh) || isBlank(sentence.en)) problems.push(`${label}: missing text`)
     if (isBlank(sentence.author)) problems.push(`${label}: missing author`)
+    if (sentence.audio) {
+      if (!isPositiveInteger(sentence.audio.tatoebaAudioId)) problems.push(`${label}: invalid audio id`)
+      if (isBlank(sentence.audio.author)) problems.push(`${label}: missing audio author`)
+      if (isBlank(sentence.audio.license) || !sentence.audio.license.startsWith('CC')) {
+        problems.push(`${label}: invalid audio license`)
+      }
+    }
     if (sentence.words.length === 0 && !sentence.grammarOnly) problems.push(`${label}: not linked to any word`)
     for (const word of sentence.words) {
       if (!wordHanzi.has(word)) problems.push(`${label}: the word "${word}" is not in the dataset`)

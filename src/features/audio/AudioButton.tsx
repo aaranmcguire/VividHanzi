@@ -2,9 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { t } from '../../i18n/index.ts'
 import type { StudyItem } from '../dictionary/studyItem.ts'
 import { audioSources } from './audio.ts'
-
-/** Only one recording plays at a time. */
-let currentAudio: HTMLAudioElement | undefined
+import { claimAudio, releaseAudio, stopAllAudio } from './playback.ts'
 
 type AudioButtonProps = {
   item: StudyItem
@@ -37,7 +35,10 @@ function AudioButtonInner({
   useEffect(() => {
     const audio = audioRef.current
     return () => {
-      if (audio && !audio.paused) audio.pause()
+      if (audio) {
+        if (!audio.paused) audio.pause()
+        releaseAudio(audio)
+      }
     }
   }, [])
 
@@ -68,11 +69,8 @@ function AudioButtonInner({
   const play = () => {
     const audio = audioRef.current
     if (!audio) return
-    if (currentAudio && currentAudio !== audio) {
-      if (!currentAudio.paused) currentAudio.pause()
-      currentAudio.currentTime = 0
-    }
-    currentAudio = audio
+    stopAllAudio()
+    claimAudio(audio)
     indexRef.current = 0
     setPlaying(true)
     playCurrent()
@@ -117,7 +115,7 @@ function AudioButtonInner({
   )
 }
 
-function SpeakerIcon() {
+export function SpeakerIcon() {
   return (
     <svg
       viewBox="0 0 24 24"

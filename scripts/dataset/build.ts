@@ -15,7 +15,7 @@ import { createInterface } from 'node:readline'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { grammarPoints } from '../../src/data/grammar.ts'
-import type { Character, ExampleSet, HskLevel, Word } from '../../src/features/dictionary/types.ts'
+import type { Character, ExampleAudio, ExampleSet, HskLevel, Word } from '../../src/features/dictionary/types.ts'
 import { validateDictionaryData, validateExampleSet } from '../../src/features/dictionary/validation.ts'
 import { strokeFileName } from '../../src/features/dictionary/strokes.ts'
 import { createWordList } from '../../src/features/dictionary/exampleChoice.ts'
@@ -26,7 +26,7 @@ import { createCedictIndex } from './sources/cedict.ts'
 import { readStrokeData, type StrokeData } from './sources/hanziWriter.ts'
 import { parseHskList } from './sources/hsk.ts'
 import { parseMakeMeAHanzi } from './sources/makemeahanzi.ts'
-import { parseLinkLine, parseSentenceLine, selectExamples, type TatoebaSentence } from './sources/tatoeba.ts'
+import { parseAudioLine, parseLinkLine, parseSentenceLine, selectExamples, type TatoebaSentence } from './sources/tatoeba.ts'
 import { loadUnihan, type UnihanCharacter } from './sources/unihan.ts'
 import { parseWordfreq, withFrequencyRank } from './sources/wordfreq.ts'
 
@@ -177,6 +177,17 @@ if (!skippedSources.has('tatoeba')) {
     if (!link || !chinese.has(link[0])) continue
     translations.set(link[0], [...(translations.get(link[0]) ?? []), link[1]])
   }
+  // Only recordings with a reusable license whose file is in public/audio/sentences.
+  const audio = new Map<number, ExampleAudio>()
+  const sentenceAudioDir = join(rootDir, 'public/audio/sentences')
+  if (existsSync(join(cacheDir, 'tatoeba/cmn_sentences_with_audio.tsv'))) {
+    for await (const line of readLines('tatoeba/cmn_sentences_with_audio.tsv')) {
+      const parsed = parseAudioLine(line)
+      if (parsed && existsSync(join(sentenceAudioDir, `tatoeba-${parsed.audio.tatoebaAudioId}.mp3`))) {
+        audio.set(parsed.sentenceId, parsed.audio)
+      }
+    }
+  }
   // Of the English sentences, only those linked to a Chinese one are kept
   const wantedEnglish = new Set([...translations.values()].flat())
   const english = new Map<number, TatoebaSentence>()
@@ -199,6 +210,7 @@ if (!skippedSources.has('tatoeba')) {
       translations,
       keep: grammarSentences,
       dictionaryWords,
+      audio,
     })
     for (const sentence of sentences) grammarSentences.delete(sentence.tatoebaId)
     examplesByLevel.set(level, { source: 'Tatoeba', license: 'CC BY 2.0 FR', exportDate, sentences })

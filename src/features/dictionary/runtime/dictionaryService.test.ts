@@ -64,7 +64,7 @@ describe('loadExamples', () => {
     const online = createFakeFetch([['https://api.tatoeba.org/', jsonResponse(ningResponse)]])
     const first = await loadExamples(
       sources(online.fetch, cache, () => time),
-      ning,
+      { kind: 'character', entry: ningOutsideHsk },
     )
     expect(first).toMatchObject({ status: 'ready', source: 'Tatoeba API v1', stale: false })
 
@@ -72,7 +72,7 @@ describe('loadExamples', () => {
     const updates: unknown[] = []
     const stale = await loadExamples(
       sources(online.fetch, cache, () => time),
-      ning,
+      { kind: 'character', entry: ningOutsideHsk },
       {
         onUpdate: (fresh) => updates.push(fresh),
       },
@@ -80,6 +80,13 @@ describe('loadExamples', () => {
     expect(stale).toMatchObject({ status: 'ready', stale: true })
     await expect.poll(() => updates).toEqual([expect.objectContaining({ status: 'ready', stale: false })])
     expect(online.requested).toHaveLength(2)
+  })
+
+  it('uses the bundled HSK sentences before calling Tatoeba', async () => {
+    const local = createFakeFetch([['/examples/hsk1.json', jsonResponse(testExampleSet)]])
+    const result = await loadExamples(sources(local.fetch), ning)
+    expect(result).toMatchObject({ status: 'ready', source: 'public/examples (HSK 1-4)' })
+    expect(local.requested).toEqual(['/examples/hsk1.json'])
   })
 
   it('offline uses the local sentences for its HSK level', async () => {

@@ -27,3 +27,9 @@ export const cmnEngLinksFixture = [
   '374825\t374827',
   '999999999\t999999998',
 ].join('\n')
+
+/** Licensed recordings; the second line has no license, so it may not be reused. */
+export const cmnAudioFixture = [
+  '8934441\t988876\tGlossaMatik\tCC BY-NC 4.0\t/en/user/profile/GlossaMatik',
+  '374825\t988877\tsomeone\t\t',
+].join('\n')

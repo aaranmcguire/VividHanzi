@@ -10,7 +10,8 @@ written by hand or generated with AI. There are two ways it reaches the app:
   needs fixing, change the script and regenerate.
 - **Requested at runtime** from the source, with a browser cache:
   the full dictionary (data repository on jsDelivr), stroke order
-  (jsDelivr) and example sentences (Tatoeba API). See
+  (jsDelivr) and example sentences outside HSK 1-4 (Tatoeba API). HSK 1-4
+  sentences come from the bundled files first. See
   [Runtime sources](#runtime-sources).
 
 ## How it is generated
@@ -30,6 +31,7 @@ sources → adapters → fusion → validation → generated files → app
 ```bash
 npm run data:fetch      # download the sources
 npm run data:build      # generate the files
+npm run examples:build  # only the HSK 1-4 example sentences and licensed Tatoeba audio
 npm run data:validate   # validate the generated files without downloading anything
 npm run check           # types, lint and tests (including the dataset)
 ```
@@ -161,19 +163,21 @@ It is the same source the etymology in the Tofu Learn app came from.
 
 ### Tatoeba
 
-- **URL:** https://tatoeba.org (exports from https://downloads.tatoeba.org/exports/per_language/: `cmn_sentences_detailed.tsv`, `eng_sentences_detailed.tsv`, `cmn-eng_links.tsv`)
+- **URL:** https://tatoeba.org (exports from https://downloads.tatoeba.org/exports/per_language/: `cmn_sentences_detailed.tsv`, `eng_sentences_detailed.tsv`, `cmn-eng_links.tsv`, `cmn_sentences_with_audio.tsv`)
 - **Version:** the weekly export from the day `data:fetch` is run; its date is stored in `exportDate`.
-- **License:** [CC BY 2.0 FR](https://creativecommons.org/licenses/by/2.0/fr/). Some sentences are also available as CC0, but all have at least CC BY.
-- **Attribution:** each sentence is shown with its Tatoeba number, its author and a link to its page, where the translation is also found.
-- **Fields:** Chinese sentence, English translation, ids and authors of both, words it was chosen for.
+- **License:** [CC BY 2.0 FR](https://creativecommons.org/licenses/by/2.0/fr/). Some sentences are also available as CC0, but all have at least CC BY. Audio has the license chosen by its recorder; only recordings with a non-empty CC license are imported (most Chinese recordings have none and are left out).
+- **Attribution:** each sentence is shown with its Tatoeba number, its author and a link to its page, where the translation is also found. A recording shows its recorder and license next to it.
+- **Fields:** Chinese sentence, English translation, ids and authors of both, words it was chosen for, and an optional recording (Tatoeba audio id, recorder, license, attribution URL).
 - **Adapter:** `sources/tatoeba.ts`
 - **Download:** not reachable from Claude's cloud environment (see "Where to run it").
+- **Fast rebuild:** `npm run examples:build` regenerates only `public/examples/` and the licensed audio, without rebuilding the dictionary. `npm run examples:build -- --no-audio` skips the downloads.
 
-Selection criteria (deterministic): Chinese sentences with an author, at most 16
+Selection criteria (deterministic): Chinese sentences with an author, at most 24
 characters, without Latin letters or digits and whose Chinese characters are
 all of the same HSK level or a lower one (someone studying HSK 1 can
-read a whole HSK 1 sentence). Per word, 3 sentences: first those where the
-word stands on its own when the sentence is split into words by longest match
+read a whole HSK 1 sentence). Per word, up to 20 sentences: first those with a
+licensed Tatoeba recording, then those where the word stands on its own when
+the sentence is split into words by longest match
 (接 in 接电话, not in 直接回家 or 我不接受, where it is part of 直接 and 接受);
 within those, first the ones that add at least 4 Chinese characters to the
 word, so they show it in use (完成了！ alone says little), then the rest; within
@@ -183,9 +187,19 @@ English translation with the lowest id. The build splits sentences with all
 CC-CEDICT words. The same order is used for the sentences fetched from the
 Tatoeba API at runtime (`src/features/dictionary/exampleChoice.ts`), which
 splits them with the HSK 1-5 words because the full dictionary may not have
-loaded yet. Sentences are copied
+loaded yet. The entry page shows the first 3 and reveals the rest in batches.
+Sentences are copied
 as they are. Their pinyin is generated in the browser (see "Pinyin of the
 example sentences").
+
+**Sentence audio.** Tatoeba's `cmn_sentences_with_audio.tsv` lists the
+recordings and the license each recorder chose. Only rows with a non-empty CC
+license are imported, into `public/audio/sentences/tatoeba-{audioId}.mp3`; the
+export currently has 84 such Chinese recordings, all CC BY-NC 4.0. They are
+copied unchanged and listed in `public/audio/sentences/ATTRIBUTION.txt` with
+their recorder and license. The app shows a speaker button on every example
+sentence: the recording when there is one, otherwise the browser's Chinese
+speech synthesis voice (when the browser has one).
 
 ### audio-cmn (pronunciation audio)
 
@@ -424,13 +438,16 @@ Actions because Claude's environment cannot reach those domains):
 - **Authentication:** none.
 - **Cache:** 7 days; after that the stored data is shown and it is requested
   again in the background.
-- **On failure:** in HSK 1-4, the local sentences in `public/examples/`. Outside
-  HSK, "Example sentences unavailable offline.".
-- **Selection:** the same rules as the script (at most 16 characters,
+- **Order:** HSK 1-4 entries use the bundled `public/examples/` files first
+  (offline, up to 20 sentences and licensed audio); the API is used for other
+  entries and when the local file has none.
+- **On failure:** outside HSK, "Example sentences unavailable offline.".
+- **Selection:** the same rules as the script (at most 24 characters,
   no Latin letters or digits, with a direct English translation), plus: the sentence
   must contain the term as is (Tatoeba also returns sentences in
-  traditional). 3 are shown, first those that only use HSK 1-4 characters
-  or the term's own. As the translation, the direct one with the lowest id: indirect
+  traditional). Up to 20 are kept, first those that only use HSK 1-4 characters
+  or the term's own; the entry page shows the first 3 and reveals the rest in
+  batches. As the translation, the direct one with the lowest id: indirect
   ones (a translation of a translation) may not match the sentence
   (好大！ came out as "God, this place is huge!").
 - **Adapter:** `src/features/dictionary/runtime/tatoebaSource.ts`
@@ -514,7 +531,7 @@ Criteria:
 | --- | --- | --- |
 | `src/data/hsk1/` to `hsk4/`: `characters.ts`, `words.ts` | Characters and words of each level | In the bundle, in a separate file from the app code |
 | `public/strokes/*.json` | Strokes of the HSK 1-4 characters | Only if jsDelivr does not respond |
-| `public/examples/hsk1.json` to `hsk4.json` | Example sentences for the words of each level | Only if Tatoeba does not respond or has no sentences |
+| `public/examples/hsk1.json` to `hsk4.json` | Example sentences for the words of each level, with licensed Tatoeba audio | When an HSK 1-4 entry page opens; the Tatoeba API is used for other entries or when the level file has none |
 | `data-release/dictionary/0.json` to `31.json` (not committed) | Full dictionary, outside HSK 1-4 | Published to HanziDict; the app requests one file when opening a card or a set with those entries, and all of them when searching |
 | `docs/DATA_CONFLICTS.md` | Disagreements between sources | For review |
 | `src/data/topics.ts` (not generated) | Hand-curated topics | In the bundle, with the dataset |
@@ -528,6 +545,9 @@ keep that of their source:
   (Unicode License v3), Make Me a Hanzi (LGPL 3.0+) and wordfreq (CC BY-SA 4.0).
 - `public/strokes/`: Arphic Public License.
 - `public/examples/`: CC BY 2.0 FR.
+- `public/audio/sentences/`: the license chosen by each Tatoeba recorder,
+  currently CC BY-NC 4.0 (non-commercial). It is not covered by the app's
+  MIT license; see `public/audio/sentences/ATTRIBUTION.txt`.
 - HanziDict (full dictionary): same as `src/data/`.
 
 Unicode notice: Copyright © Unicode, Inc. The Unihan data is

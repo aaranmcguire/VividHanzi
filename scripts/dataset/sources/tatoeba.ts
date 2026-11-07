@@ -8,11 +8,13 @@
  * - cmn_sentences_detailed.tsv and eng_sentences_detailed.tsv:
  *   id, language, text, user, date added, date modified.
  * - cmn-eng_links.tsv: id pairs (Chinese sentence, English translation).
+ * - cmn_sentences_with_audio.tsv: sentence id, audio id, recorder, license,
+ *   attribution URL.
  *
  * No sentence is generated or modified: they are copied as is.
  */
 import { rankExamples, type WordList } from '../../../src/features/dictionary/exampleChoice.ts'
-import type { ExampleSentence } from '../../../src/features/dictionary/types.ts'
+import type { ExampleAudio, ExampleSentence } from '../../../src/features/dictionary/types.ts'
 
 export interface TatoebaSentence {
   id: number
@@ -24,11 +26,11 @@ export interface TatoebaSentence {
 /** Tatoeba uses "\N" for empty values (orphaned sentences, no author). */
 const NULL_VALUE = '\\N'
 
-/** Maximum example sentences per word. */
-export const MAX_EXAMPLES_PER_WORD = 3
+/** Maximum example sentences per word. The entry page shows them in batches. */
+export const MAX_EXAMPLES_PER_WORD = 20
 
 /** Maximum length of an example sentence, in characters. Short ones are easier to read. */
-export const MAX_SENTENCE_LENGTH = 16
+export const MAX_SENTENCE_LENGTH = 24
 
 const HAN = /\p{Script=Han}/u
 /** Latin letters and digits: usually proper nouns or numbers that distract. */
@@ -47,6 +49,39 @@ export function parseLinkLine(line: string): [number, number] | undefined {
   const [from, to] = line.split('\t').map(Number)
   if (!from || !to) return undefined
   return [from, to]
+}
+
+/**
+ * Reads a line of `cmn_sentences_with_audio.tsv`:
+ * sentence id, audio id, recorder, license, attribution URL.
+ *
+ * Tatoeba leaves the license empty when the recording may not be reused
+ * outside Tatoeba; those lines are dropped. Any CC license is kept (some
+ * Chinese recordings are CC BY-NC 4.0, which this non-commercial app can use).
+ */
+export function parseAudioLine(line: string): { sentenceId: number; audio: ExampleAudio } | undefined {
+  const [sentenceId, audioId, author, license, attributionUrl] = line.split('\t')
+  const numericSentenceId = Number(sentenceId)
+  const numericAudioId = Number(audioId)
+  if (
+    !Number.isInteger(numericSentenceId) ||
+    numericSentenceId <= 0 ||
+    !Number.isInteger(numericAudioId) ||
+    numericAudioId <= 0 ||
+    !author ||
+    !license?.startsWith('CC')
+  ) {
+    return undefined
+  }
+  return {
+    sentenceId: numericSentenceId,
+    audio: {
+      tatoebaAudioId: numericAudioId,
+      author,
+      license,
+      ...(attributionUrl && { attributionUrl }),
+    },
+  }
 }
 
 /**
@@ -76,6 +111,8 @@ export interface ExampleInputs {
   keep?: ReadonlySet<number>
   /** Dictionary words, to prefer sentences where the word stands on its own (rankExamples). */
   dictionaryWords?: WordList
+  /** Licensed recordings by sentence id. They are preferred as examples. */
+  audio?: ReadonlyMap<number, ExampleAudio>
 }
 
 /**
@@ -86,7 +123,7 @@ export interface ExampleInputs {
  * used.
  */
 export function selectExamples(inputs: ExampleInputs): ExampleSentence[] {
-  const { words, knownCharacters, chinese, english, translations, keep = new Set<number>(), dictionaryWords } = inputs
+  const { words, knownCharacters, chinese, english, translations, keep = new Set<number>(), dictionaryWords, audio } = inputs
 
   const candidates = [...chinese.values()]
     .filter((sentence) => sentence.author !== undefined && isUsableSentence(sentence.text, knownCharacters))
@@ -104,18 +141,28 @@ export function selectExamples(inputs: ExampleInputs): ExampleSentence[] {
     )
 
   const selected = new Map<number, ExampleSentence>()
-  const toExample = ({ sentence, translation }: (typeof candidates)[number]): ExampleSentence => ({
-    tatoebaId: sentence.id,
-    zh: sentence.text,
-    author: sentence.author!,
-    en: translation.text,
-    translationTatoebaId: translation.id,
-    ...(translation.author !== undefined && { translationAuthor: translation.author }),
-    words: [],
-  })
+  const toExample = ({ sentence, translation }: (typeof candidates)[number]): ExampleSentence => {
+    const recording = audio?.get(sentence.id)
+    return {
+      tatoebaId: sentence.id,
+      zh: sentence.text,
+      author: sentence.author!,
+      en: translation.text,
+      translationTatoebaId: translation.id,
+      ...(translation.author !== undefined && { translationAuthor: translation.author }),
+      ...(recording !== undefined && { audio: recording }),
+      words: [],
+    }
+  }
   for (const word of words) {
     const matching = candidates.filter(({ sentence }) => sentence.text.includes(word))
-    const examples = rankExamples(matching, word, ({ sentence }) => sentence.text, dictionaryWords).slice(0, MAX_EXAMPLES_PER_WORD)
+    // Recordings are scarce, so sentences with one go first; then the usual ranking.
+    const recorded = matching.filter(({ sentence }) => audio?.has(sentence.id))
+    const unrecorded = matching.filter(({ sentence }) => !audio?.has(sentence.id))
+    const examples = [
+      ...rankExamples(recorded, word, ({ sentence }) => sentence.text, dictionaryWords),
+      ...rankExamples(unrecorded, word, ({ sentence }) => sentence.text, dictionaryWords),
+    ].slice(0, MAX_EXAMPLES_PER_WORD)
     for (const candidate of examples) {
       const example = selected.get(candidate.sentence.id) ?? toExample(candidate)
       example.words.push(word)

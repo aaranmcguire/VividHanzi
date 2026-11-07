@@ -17,7 +17,7 @@ const ENDPOINT = 'https://api.tatoeba.org/v1/sentences'
 const PAGE_SIZE = 50
 
 /** The same rules as the HSK sentences (scripts/dataset/sources/tatoeba.ts). */
-export const MAX_SENTENCE_LENGTH = 16
+export const MAX_SENTENCE_LENGTH = 24
 const HAN = /\p{Script=Han}/u
 const LATIN_OR_DIGIT = /[A-Za-z0-9Ａ-Ｚａ-ｚ０-９]/
 

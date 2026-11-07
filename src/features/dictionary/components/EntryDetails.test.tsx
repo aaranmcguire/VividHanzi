@@ -1,4 +1,5 @@
 import { screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { getEntryPath } from '../entryPaths.ts'
 import { renderWithProviders } from '../../../test/renderWithProviders.tsx'
@@ -139,7 +140,8 @@ describe('EntryDetails for a character', () => {
       'https://tatoeba.org/en/sentences/show/8934444',
     )
     expect(screen.getByText(/licensed CC BY 2.0 FR/)).toBeInTheDocument()
-    expect(fake.requested).not.toContain('/examples/hsk1.json')
+    // The local HSK file is tried first; with no copy, the runtime API is used
+    expect(fake.requested).toContain('/examples/hsk1.json')
   })
 
   it('shows the direct translation with the lowest id', async () => {
@@ -191,6 +193,27 @@ describe('EntryDetails for a character', () => {
     expect(await screen.findByRole('heading', { name: 'Example sentences' })).toBeInTheDocument()
     await expectSentenceWithPinyin('柠檬很酸。', 'níng méng hěn suān。')
     expect(screen.getByRole('link', { name: 'Tatoeba #8934441 by iiujik' })).toBeInTheDocument()
+  })
+
+  it('shows three local sentences first and the rest on request', async () => {
+    const user = userEvent.setup()
+    const set = {
+      ...testExampleSet,
+      sentences: Array.from({ length: 5 }, (_, index) => ({
+        ...testExampleSet.sentences[0]!,
+        tatoebaId: 8934441 + index,
+        zh: `柠檬很酸${index}。`,
+      })),
+    }
+    const fake = createFakeFetch([['/examples/hsk1.json', jsonResponse(set)]])
+    renderCharacter(ningCharacter, fake.fetch)
+
+    expect(await screen.findByRole('heading', { name: 'Example sentences' })).toBeInTheDocument()
+    const shown = () => screen.getAllByRole('listitem').filter((li) => li.textContent?.includes('Tatoeba #'))
+    expect(shown()).toHaveLength(3)
+
+    await user.click(screen.getByRole('button', { name: 'Show 2 more' }))
+    expect(shown()).toHaveLength(5)
   })
 
   it("shows a particle's grammar notes with its example and the Grammar Wiki link", () => {

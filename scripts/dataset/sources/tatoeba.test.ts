@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { cmnEngLinksFixture, cmnSentencesFixture, engSentencesFixture } from '../fixtures/tatoeba.ts'
+import { cmnAudioFixture, cmnEngLinksFixture, cmnSentencesFixture, engSentencesFixture } from '../fixtures/tatoeba.ts'
 import {
   isUsableSentence,
+  parseAudioLine,
   parseLinkLine,
   parseSentenceLine,
   selectExamples,
@@ -24,6 +25,13 @@ function links(text: string): Map<number, number[]> {
 const chinese = sentences(cmnSentencesFixture)
 const english = sentences(engSentencesFixture)
 const translations = links(cmnEngLinksFixture)
+const audio = new Map(
+  cmnAudioFixture
+    .split('\n')
+    .map(parseAudioLine)
+    .filter((entry) => entry !== undefined)
+    .map(({ sentenceId, audio: recording }) => [sentenceId, recording]),
+)
 
 describe('Tatoeba adapter', () => {
   it('reads sentence and link lines', () => {
@@ -31,6 +39,37 @@ describe('Tatoeba adapter', () => {
     expect(english.get(29487)).toEqual({ id: 29487, text: 'Lemon is sour.' })
     expect(parseLinkLine('8934441\t29487')).toEqual([8934441, 29487])
     expect(parseSentenceLine('x\tcmn\t\t\\N')).toBeUndefined()
+  })
+
+  it('keeps only recordings with a reusable license', () => {
+    expect(parseAudioLine('8934441\t988876\tGlossaMatik\tCC BY-NC 4.0\t/en/user/profile/GlossaMatik')).toEqual({
+      sentenceId: 8934441,
+      audio: {
+        tatoebaAudioId: 988876,
+        author: 'GlossaMatik',
+        license: 'CC BY-NC 4.0',
+        attributionUrl: '/en/user/profile/GlossaMatik',
+      },
+    })
+    expect(parseAudioLine('374825\t988877\tsomeone\t\t')).toBeUndefined()
+    expect(parseAudioLine('x\t988878\tsomeone\tCC0 1.0\t')).toBeUndefined()
+  })
+
+  it('attaches a recording to the sentence it belongs to', () => {
+    const examples = selectExamples({
+      words: ['柠檬'],
+      knownCharacters: new Set(Array.from('柠檬很酸')),
+      chinese,
+      english,
+      translations,
+      audio,
+    })
+    expect(examples[0]?.audio).toEqual({
+      tatoebaAudioId: 988876,
+      author: 'GlossaMatik',
+      license: 'CC BY-NC 4.0',
+      attributionUrl: '/en/user/profile/GlossaMatik',
+    })
   })
 
   it('only accepts short sentences with known characters and no Latin letters', () => {

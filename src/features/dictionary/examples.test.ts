@@ -20,6 +20,23 @@ describe('example sentences', () => {
     expect(getExamplesFor(testExampleSet, { kind: 'character', entry: testCharacters[0]! })).toEqual([])
   })
 
+  it('returns many sentences for a word, up to the display limit', () => {
+    const set = {
+      ...testExampleSet,
+      sentences: Array.from({ length: 25 }, (_, index) => ({
+        ...testExampleSet.sentences[0]!,
+        tatoebaId: 100 + index,
+        zh: `柠檬很酸${index}。`,
+        ...(index === 0 && {
+          audio: { tatoebaAudioId: 988876, author: 'GlossaMatik', license: 'CC BY-NC 4.0' },
+        }),
+      })),
+    }
+    const examples = getExamplesFor(set, { kind: 'word', entry: ningmengWord })
+    expect(examples).toHaveLength(20)
+    expect(examples[0]?.audio?.tatoebaAudioId).toBe(988876)
+  })
+
   it('links each sentence to its Tatoeba page', () => {
     expect(tatoebaSentenceUrl(8934441)).toBe('https://tatoeba.org/en/sentences/show/8934441')
   })

@@ -43,7 +43,7 @@ curl -sSfL -o unihan/CJKRadicals.txt "https://www.unicode.org/Public/${UNICODE_V
 # tatoeba.org is not reachable from Claude's cloud environment either.
 TATOEBA_EXPORTS=https://downloads.tatoeba.org/exports/per_language
 mkdir -p tatoeba
-for file in cmn/cmn_sentences_detailed cmn/cmn-eng_links eng/eng_sentences_detailed; do
+for file in cmn/cmn_sentences_detailed cmn/cmn-eng_links cmn/cmn_sentences_with_audio eng/eng_sentences_detailed; do
   curl -sSfL "${TATOEBA_EXPORTS}/${file}.tsv.bz2" | bunzip2 > "tatoeba/$(basename "$file").tsv"
 done
 date -u +%Y-%m-%d > tatoeba/export-date.txt

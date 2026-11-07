@@ -1,6 +1,6 @@
 import { formatPinyin, getCharactersOfWord, getMeanings, getTraditionalForms, getWordsWithCharacter, type Dictionary } from '../../src/features/dictionary/dictionary.ts'
 import { createWordList, type WordList } from '../../src/features/dictionary/exampleChoice.ts'
-import { getExamplesFor, tatoebaSentenceUrl } from '../../src/features/dictionary/examples.ts'
+import { getExamplesFor, INITIAL_EXAMPLES_SHOWN, tatoebaSentenceUrl } from '../../src/features/dictionary/examples.ts'
 import type { StudyItem } from '../../src/features/dictionary/studyItem.ts'
 import type { ExampleSet } from '../../src/features/dictionary/types.ts'
 import { describeEntry } from '../../src/features/dictionary/entryDescription.ts'
@@ -106,7 +106,10 @@ export function renderEntryContent(
     )
   }
 
-  const sentences = examples === undefined ? [] : getExamplesFor(examples, item, wordListOf(dictionary))
+  const sentences =
+    examples === undefined
+      ? []
+      : getExamplesFor(examples, item, wordListOf(dictionary)).slice(0, INITIAL_EXAMPLES_SHOWN)
   if (sentences.length > 0) {
     sections.push(
       `<h2>Example sentences</h2>${sentences

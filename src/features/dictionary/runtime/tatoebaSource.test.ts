@@ -55,7 +55,7 @@ describe('toExampleSentences', () => {
       tatoebaSentence(3, '我在ABC买了柠檬。', 'a', [lemon]),
       unapproved,
       otherLicense,
-      tatoebaSentence(6, '这个柠檬比我昨天在商店里买的那个柠檬酸多了。', 'a', [lemon]),
+      tatoebaSentence(6, '这个柠檬比我昨天在商店里买的那个柠檬酸多了，所以我没有买。', 'a', [lemon]),
       tatoebaSentence(7, '檸檬。', 'a', [lemon]),
       tatoebaSentence(8, '柠檬。', 'a', [tatoebaTranslation(9, 'Lemon.', null)]),
       tatoebaSentence(10, '柠檬。', 'a', [tatoebaTranslation(11, 'See you again.', 'b', false)]),
