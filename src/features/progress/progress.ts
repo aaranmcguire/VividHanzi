@@ -115,9 +115,29 @@ export function introduceItem(progress: ProgressData, itemId: StudyItemId, now: 
  * Like introduceItem, but for an item the user already knows: it goes
  * straight in as mastered and its first review is a long way off (see
  * scheduleKnownItem). It still comes up in Study, but only very occasionally.
+ * It leaves an item that already has progress alone (Learn only uses it for
+ * new items).
  */
 export function markItemKnown(progress: ProgressData, itemId: StudyItemId, now: Date): ProgressData {
   return addItem(progress, itemId, now, scheduleKnownItem(now))
+}
+
+/**
+ * Marks an item as known even when it already has a learning record. This is
+ * the quick action in the set vocabulary list: it keeps the answer counts but
+ * sets the item to mastered, so it stops being a new/learning item. The
+ * previous record can be put back with setItemProgress (Undo).
+ */
+export function setItemKnown(progress: ProgressData, itemId: StudyItemId, now: Date): ProgressData {
+  const existing = progress.items[itemId]
+  const base = existing ?? newItem(itemId, now)
+  const record = { ...base }
+  delete record.basic
+  delete record.fromLevel
+  return {
+    ...progress,
+    items: { ...progress.items, [itemId]: { ...record, ...scheduleKnownItem(now) } },
+  }
 }
 
 /** An HSK item with its level, for applying the user's level. */

@@ -13,6 +13,7 @@ import { useMyStudies } from '../../features/myStudies/myStudiesContext.ts'
 import { AddVocabulary } from '../../features/customSets/components/AddVocabulary.tsx'
 import { CustomItemList } from '../../features/customSets/components/CustomItemList.tsx'
 import { CustomSetSettings } from '../../features/customSets/components/CustomSetSettings.tsx'
+import { MarkKnownAction } from '../../features/progress/components/MarkKnownAction.tsx'
 import { StatusBadge } from '../../features/progress/components/StatusBadge.tsx'
 import { getDisplayStatus } from '../../features/progress/progress.ts'
 import { useProgress } from '../../features/progress/progressContext.ts'
@@ -115,14 +116,27 @@ function ItemList({ title, items, progress }: ItemListProps) {
         {title}
       </h2>
       <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
-        {items.slice(0, shown).map((item) => (
-          <li key={getStudyItemId(item)}>
-            <Link to={getEntryPath(item)} className="flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-paper sm:gap-4 sm:px-4 sm:py-3">
-              <EntryLabel entry={item.entry} withMeaning />
-              <StatusBadge status={getDisplayStatus(progress, getStudyItemId(item))} />
-            </Link>
-          </li>
-        ))}
+        {items.slice(0, shown).map((item) => {
+          const itemId = getStudyItemId(item)
+          const status = getDisplayStatus(progress, itemId)
+          return (
+            <li
+              key={itemId}
+              className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 sm:px-4 sm:py-3"
+            >
+              <Link
+                to={getEntryPath(item)}
+                className="flex min-w-0 flex-1 items-center gap-3 hover:text-accent-strong"
+              >
+                <EntryLabel entry={item.entry} withMeaning />
+              </Link>
+              <div className="ml-auto flex shrink-0 items-center gap-2">
+                <StatusBadge status={status} />
+                <MarkKnownAction itemId={itemId} hanzi={item.entry.hanzi} status={status} />
+              </div>
+            </li>
+          )
+        })}
       </ul>
       {shown < items.length && (
         <div className="flex flex-wrap items-center gap-3">

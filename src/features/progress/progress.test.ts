@@ -16,6 +16,7 @@ import {
   recordWritingAnswer,
   restoreProgress,
   setItemExcluded,
+  setItemKnown,
 } from './progress.ts'
 
 const monday = new Date(2026, 8, 28, 10, 0)
@@ -155,6 +156,29 @@ describe('markItemKnown', () => {
     const progress = introduceItem(createEmptyProgress(), 'word:你好', now)
 
     expect(markItemKnown(progress, 'word:你好', now)).toBe(progress)
+  })
+})
+
+describe('setItemKnown', () => {
+  const now = new Date(2026, 8, 28, 12)
+
+  it('marks a new item as mastered without counting an answer', () => {
+    const progress = setItemKnown(createEmptyProgress(), 'word:你好', now)
+    const item = progress.items['word:你好']
+
+    expect(getItemStatus(item)).toBe('mastered')
+    expect(item).toMatchObject({ timesSeen: 0 })
+    expect(progress.activity).toEqual({})
+  })
+
+  it('promotes an item that was already being learned and keeps its counts', () => {
+    let progress = introduceItem(createEmptyProgress(), 'word:你好', now)
+    progress = recordAnswer(progress, 'word:你好', true, now)
+    const known = setItemKnown(progress, 'word:你好', new Date(2026, 9, 1, 12))
+
+    expect(getItemStatus(known.items['word:你好'])).toBe('mastered')
+    expect(known.items['word:你好']).toMatchObject({ timesSeen: 1, timesCorrect: 1 })
+    expect(known.items['word:你好']?.fromLevel).toBeUndefined()
   })
 })
 

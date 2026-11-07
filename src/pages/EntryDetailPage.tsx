@@ -9,7 +9,8 @@ import { LoadEntries } from '../features/dictionary/components/LoadEntries.tsx'
 import { useDictionary } from '../features/dictionary/dictionaryContext.ts'
 import { getStudyItem, getStudyItemId, type StudyItem, type StudyItemId } from '../features/dictionary/studyItem.ts'
 import { ItemProgressCard } from '../features/progress/components/ItemProgressCard.tsx'
-import { isExcluded } from '../features/progress/progress.ts'
+import { MarkKnownAction } from '../features/progress/components/MarkKnownAction.tsx'
+import { getDisplayStatus, isExcluded } from '../features/progress/progress.ts'
 import { useProgress } from '../features/progress/progressContext.ts'
 import { useStudySets } from '../features/studySets/useStudySets.ts'
 import { getSetPath } from '../features/studySets/setPaths.ts'
@@ -70,6 +71,13 @@ function Entry({ itemId }: { itemId: StudyItemId }) {
           item={progress.items[itemId]}
           now={new Date()}
           excluded={isExcluded(progress, itemId) ? { onLearnAfterAll: () => setItemExcluded(itemId, false) } : undefined}
+          action={
+            <MarkKnownAction
+              itemId={itemId}
+              hanzi={item.entry.hanzi}
+              status={getDisplayStatus(progress, itemId)}
+            />
+          }
         />
         <StudySetsOfItem item={item} />
       </div>

@@ -3,7 +3,7 @@ import type { StudyItemId } from '../dictionary/studyItem.ts'
 import type { HskLevel } from '../dictionary/types.ts'
 import type { ExerciseResult } from '../practice/types.ts'
 import type { LeveledItem } from './progress.ts'
-import type { ProgressData } from './types.ts'
+import type { ItemProgress, ProgressData } from './types.ts'
 
 export interface ProgressContextValue {
   progress: ProgressData
@@ -18,6 +18,10 @@ export interface ProgressContextValue {
   markCharactersTaught: (characters: readonly string[]) => void
   /** Marks an item as already mastered (Learn session): it comes up again only very occasionally. */
   markItemKnown: (itemId: StudyItemId) => void
+  /** Marks an item as known even if it already had learning progress (quick action). */
+  setItemKnown: (itemId: StudyItemId) => void
+  /** Puts an item's progress record back, or removes it with `undefined` (Undo). */
+  setItemProgress: (itemId: StudyItemId, item: ItemProgress | undefined) => void
   /** Marks an item as one the user doesn't want to learn, or undoes it (see setItemExcluded). */
   setItemExcluded: (itemId: StudyItemId, excluded: boolean) => void
   /** Undoes a session step on those items, back to `before` (see restoreProgress in progress.ts). */

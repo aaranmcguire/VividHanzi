@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Button } from '../../../components/ui/Button.tsx'
 import { Card } from '../../../components/ui/Card.tsx'
 import { formatDate, t } from '../../../i18n/index.ts'
@@ -11,16 +12,21 @@ type ItemProgressCardProps = {
   now: Date
   /** The user chose not to learn it in Learn; `onLearnAfterAll` undoes that. */
   excluded?: { onLearnAfterAll: () => void }
+  /** Extra action next to the status, e.g. Mark as known. */
+  action?: ReactNode
 }
 
 /** How the user is doing with a specific character or word. */
-export function ItemProgressCard({ item, now, excluded }: ItemProgressCardProps) {
+export function ItemProgressCard({ item, now, excluded, action }: ItemProgressCardProps) {
   const isExcluded = !item && excluded !== undefined
   return (
     <Card className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">{t('dictionary.yourProgress')}</h2>
-        <StatusBadge status={isExcluded ? 'excluded' : getItemStatus(item)} />
+        <div className="flex items-center gap-2">
+          <StatusBadge status={isExcluded ? 'excluded' : getItemStatus(item)} />
+          {action}
+        </div>
       </div>
       {item ? (
         <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">

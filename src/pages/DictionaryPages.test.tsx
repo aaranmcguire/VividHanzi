@@ -121,6 +121,19 @@ describe('EntryDetailPage', () => {
     expect(screen.getByText('Next review').nextElementSibling).toHaveTextContent('Now')
   })
 
+  it('marks a word as known from its entry page and can undo it', async () => {
+    const user = userEvent.setup()
+    const storage = memoryStorage()
+    renderWithProviders(<AppRoutes />, { path: '/vocabulary/苹果', storage })
+
+    await user.click(screen.getByRole('button', { name: 'Mark 苹果 as known' }))
+    expect(screen.getByText('Mastered')).toBeInTheDocument()
+    expect(loadProgress(storage).items['word:苹果']).toBeDefined()
+
+    await user.click(screen.getByRole('button', { name: 'Undo marking 苹果 as known' }))
+    expect(loadProgress(storage).items['word:苹果']).toBeUndefined()
+  })
+
   it('a word the user chose not to learn says so and can be brought back to Learn', async () => {
     const user = userEvent.setup()
     const storage = memoryStorage()

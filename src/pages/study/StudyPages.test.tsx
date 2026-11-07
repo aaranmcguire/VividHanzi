@@ -8,7 +8,7 @@ import { LOCAL_BACKEND } from '../../features/backend/config.ts'
 import { topicDefinitions } from '../../data/topics.ts'
 import { loadMyStudies } from '../../features/myStudies/storage.ts'
 import { createEmptyProgress, introduceItem, recordAnswer } from '../../features/progress/progress.ts'
-import { saveProgress } from '../../features/progress/storage.ts'
+import { loadProgress, saveProgress } from '../../features/progress/storage.ts'
 import type { KeyValueStorage } from '../../lib/storage.ts'
 import { memoryStorage } from '../../test/memoryStorage.ts'
 
@@ -94,6 +94,25 @@ describe('Set page', () => {
     const vocabulary = screen.getByRole('region', { name: 'Vocabulary' })
     expect(within(vocabulary).getByRole('link', { name: /苹果/ })).toHaveAttribute('href', `/vocabulary/${encodeURIComponent('苹果')}`)
     expect(screen.getByText(/· 0 of 51 mastered$/)).toBeInTheDocument()
+  })
+
+  it('marks a word as known from the vocabulary list and can undo it', async () => {
+    const user = userEvent.setup()
+    const storage = memoryStorage()
+    renderAt('/study/sets/topic-food', storage)
+    const vocabulary = screen.getByRole('region', { name: 'Vocabulary' })
+    const row = within(vocabulary).getByRole('link', { name: /苹果/ }).closest('li')!
+
+    await user.click(within(row).getByRole('button', { name: 'Mark 苹果 as known' }))
+
+    expect(within(row).getByText('Mastered')).toBeInTheDocument()
+    expect(loadProgress(storage).items['word:苹果']).toBeDefined()
+    expect(screen.getByText(/· 1 of 51 mastered/)).toBeInTheDocument()
+
+    await user.click(within(row).getByRole('button', { name: 'Undo marking 苹果 as known' }))
+
+    expect(within(row).getByText('New')).toBeInTheDocument()
+    expect(loadProgress(storage).items['word:苹果']).toBeUndefined()
   })
 
   it('the Learn and Study actions count using real progress', () => {
