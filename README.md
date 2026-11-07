@@ -5,10 +5,17 @@ Spaced repetition, stroke-by-stroke writing practice, tone-colored pinyin and a
 full Chinese-English dictionary, in a clean interface that works on desktop and
 phone.
 
-**Try it: [vividhanzi.com](https://vividhanzi.com)** · no account needed, no ads.
+**Try it: [vividhanzi.aaran.workers.dev](https://vividhanzi.aaran.workers.dev)** · no account needed, no ads.
+
+This is a customized fork of [ItsCogo-lab/VividHanzi](https://github.com/ItsCogo-lab/VividHanzi);
+the original project is at [vividhanzi.com](https://vividhanzi.com). Compared
+with the original, this fork adds Tatoeba example sentences and sentence audio,
+listening practice, quick “mark as known,” and switchable Cloudflare
+D1/Supabase storage.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Support on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/cogo8)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/aaranmcguire/VividHanzi)
 
 <p>
   <img src="docs/screenshots/home.png" alt="Home: daily goal, Today's Word and quick practice" width="62%">
@@ -30,7 +37,7 @@ phone.
   what is due and give more exercises for your weaker skills (meaning, pinyin,
   tones, writing).
 - **Many exercise types:** flashcards, meaning, hanzi, pinyin, tones, match
-  pinyin, match meanings and writing.
+  pinyin, match meanings, listening choice, listening translation and writing.
 - **Sentence translation:** sentences built only from the words you have
   learned, translated into English and checked against a reference.
 - **Optional AI help:** on Cloudflare Workers with Workers AI, DeepSeek 4.1
@@ -54,8 +61,9 @@ phone.
   on your home screen.
 - **Progress:** daily goal, activity calendar, streaks, accuracy charts,
   per-skill stats, difficult words and a Today's Word card (HSK 3-5).
-- **Your data stays yours.** Progress is saved in your browser. Optionally
-  sign in (Google or an email link) to sync it across devices.
+- **Your data stays yours.** Progress is saved in your browser and can sync
+  to your own Cloudflare D1 (anonymous device token or Cloudflare Access) or
+  to a Supabase account.
 
 ## Support the project
 
@@ -78,8 +86,10 @@ npm install
 npm run dev        # development server at http://localhost:5173
 ```
 
-Without a Supabase project configured the app works the same, just without
-accounts. See [`docs/ACCOUNTS.md`](docs/ACCOUNTS.md).
+The app works without an account: progress stays in the browser. On
+Cloudflare, the Worker also keeps a synced copy in D1, anonymous by default.
+See [Storage and identity](#storage-and-identity); Supabase setup is in
+[`docs/ACCOUNTS.md`](docs/ACCOUNTS.md).
 
 | Command | What it does |
 | --- | --- |
@@ -96,8 +106,35 @@ accounts. See [`docs/ACCOUNTS.md`](docs/ACCOUNTS.md).
 | `npm run examples:build` | Rebuilds only the HSK 1-4 example sentences and licensed Tatoeba audio (add `-- --no-audio` to skip downloads) |
 | `npm run data:validate` | Validates the generated dataset without downloading anything |
 | `npm run seo:pages` | After a build, writes a static page per HSK character and word, `sitemap.xml` and `robots.txt` into `dist/` (needs `SITE_URL`; the Deploy workflow runs it) |
+| `npm run deploy` | Applies the D1 schema, then deploys the Worker to Cloudflare |
 | `npm run db:migrate` | Applies the D1 schema to the remote database |
 | `npm run db:migrate:local` | Applies the D1 schema to the local Wrangler database |
+
+## Deploy your own
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/aaranmcguire/VividHanzi)
+
+The button builds the app, creates the Worker and a D1 database in your
+Cloudflare account, and deploys it. Cloudflare reads `wrangler.jsonc` and
+updates the D1 `database_id` for the database it creates. The `deploy` script
+in `package.json` applies `migrations/0001_user_state.sql` before deploying, so
+the synced state has its table from the first request.
+
+The default configuration uses an anonymous device token and D1, so the app
+works without Zero Trust. To put it behind Cloudflare Access, follow
+[D1 + Cloudflare Access](#d1--cloudflare-access). The Workers AI binding is
+optional: without it (or without a paid Workers plan), sentence translation
+keeps its self-grading and hints are unavailable.
+
+To deploy manually instead:
+
+```bash
+npm run deploy
+```
+
+The `wrangler.jsonc` in this repository contains the database id of this
+deployment. If you deploy manually to another account, replace it with your own
+(see below).
 
 ## Storage and identity
 
@@ -133,7 +170,7 @@ the `vars` in `wrangler.jsonc`:
      "ACCESS_AUD": "your-application-aud"
    }
    ```
-6. Deploy: `npx wrangler deploy`.
+6. Deploy: `npm run deploy` (applies the schema again, which is safe, then deploys).
 
 Without Access, use `IDENTITY_PROVIDER: "anonymous"` and
 `ALLOW_ANONYMOUS: "true"`: each browser gets a random device token and its data
@@ -146,8 +183,8 @@ anonymous + D1.
 
 React 19 · TypeScript (strict) · Vite · Tailwind CSS v4 · React Router ·
 Hanzi Writer · Cloudflare Workers, D1 and Workers AI · Supabase (optional
-sync) · Vitest + Testing Library · oxlint. Deployable to Cloudflare Workers or
-GitHub Pages.
+sync) · Vitest + Testing Library · oxlint. Deployable to Cloudflare Workers
+with the button above, or to GitHub Pages.
 
 ## Project structure
 
@@ -155,6 +192,8 @@ GitHub Pages.
 docs/            Architecture, data sources, accounts and screenshots
 scripts/dataset/ Script that generates the dataset from the sources
 public/          Static files: icons, stroke data and example sentences for HSK
+migrations/      D1 schema for synced progress and settings
+worker/          Worker API: identity, D1 state and optional Workers AI routes
 supabase/        Database schema for the optional account sync
 src/
   app/           App shell, routes and navigation
@@ -202,5 +241,6 @@ The source code is released under the [MIT License](LICENSE).
 The linguistic data is not covered by the MIT License: each data file keeps
 the license of its source (see above). In particular, the word and character
 data derived from CC-CEDICT and wordfreq is shared under CC BY-SA 4.0, the
-example sentences under CC BY 2.0 FR and the stroke data under the Arphic
-Public License.
+example sentences under CC BY 2.0 FR, the Tatoeba sentence recordings under
+the license chosen by their recorder (currently CC BY-NC 4.0), and the stroke
+data under the Arphic Public License.
