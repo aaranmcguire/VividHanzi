@@ -1,0 +1,38 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "vividhanzi",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-11-04",
+  // The app is a Vite single-page app: serve dist/ as static assets and fall
+  // back to index.html for client-side routes such as /study or /dictionary.
+  // The Worker adds the optional /api/ai/* routes for Workers AI.
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  },
+  // Optional: if the binding is missing, /api/ai says available: false and
+  // the sentence exercises keep their self-grading.
+  "ai": {
+    "binding": "AI"
+  },
+  // The user's data: progress, settings, custom sets and My Studies.
+  // This is the deployment's D1 database. Replace the id if you deploy this
+  // repository to another Cloudflare account.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "vividhanzi",
+      "database_id": "a15dafa4-36a7-4e76-bc69-8305b67d431c"
+    }
+  ],
+  // Switchable backend. For Cloudflare Access set IDENTITY_PROVIDER to
+  // "cloudflare-access", ALLOW_ANONYMOUS to "false", and add
+  // ACCESS_TEAM_DOMAIN and ACCESS_AUD. For Supabase set STORAGE_BACKEND and
+  // IDENTITY_PROVIDER to "supabase".
+  "vars": {
+    "IDENTITY_PROVIDER": "anonymous",
+    "STORAGE_BACKEND": "d1",
+    "ALLOW_ANONYMOUS": "true"
+  }
+}

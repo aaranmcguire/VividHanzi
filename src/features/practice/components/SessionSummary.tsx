@@ -7,18 +7,28 @@ import type { StudyItem } from '../../dictionary/studyItem.ts'
 import type { SessionSummary as Summary } from '../session.ts'
 import { PinyinText } from '../../dictionary/components/PinyinText.tsx'
 import { ToneHanzi } from '../../dictionary/components/ToneHanzi.tsx'
+import { SentenceText } from '../../translation/components/SentenceText.tsx'
+import type { BuiltSentence } from '../../translation/types.ts'
 import { BackButton } from './BackButton.tsx'
 
 type SessionSummaryProps = {
   summary: Summary
   /** Items the user did not know, to review them at a glance. */
   missedItems: readonly StudyItem[]
+  /** Sentences the user did not translate correctly, with their translation. */
+  missedSentences?: readonly BuiltSentence[]
   onRestart: () => void
   /** Goes back to the last card, undoing its answer. */
   onBack?: () => void
 }
 
-export function SessionSummary({ summary, missedItems, onRestart, onBack }: SessionSummaryProps) {
+export function SessionSummary({
+  summary,
+  missedItems,
+  missedSentences = [],
+  onRestart,
+  onBack,
+}: SessionSummaryProps) {
   return (
     <Card className="mx-auto flex max-w-xl flex-col gap-4 sm:gap-6">
       <div className="text-center">
@@ -28,7 +38,7 @@ export function SessionSummary({ summary, missedItems, onRestart, onBack }: Sess
         </p>
       </div>
 
-      {missedItems.length > 0 ? (
+      {missedItems.length > 0 && (
         <section>
           <h3 className="mb-3 font-medium">{t('practice.summary.toReview')}</h3>
           <ul className="divide-y divide-line">
@@ -41,7 +51,23 @@ export function SessionSummary({ summary, missedItems, onRestart, onBack }: Sess
             ))}
           </ul>
         </section>
-      ) : (
+      )}
+
+      {missedSentences.length > 0 && (
+        <section>
+          <h3 className="mb-3 font-medium">{t('practice.summary.sentencesToReview')}</h3>
+          <ul className="divide-y divide-line">
+            {missedSentences.map((sentence) => (
+              <li key={sentence.id} className="flex flex-col gap-1 py-3">
+                <SentenceText sentence={sentence} className="text-2xl" />
+                <p className="text-ink-muted">{sentence.english}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {missedItems.length === 0 && missedSentences.length === 0 && (
         <p className="text-center text-success">{t('practice.summary.allKnown')}</p>
       )}
 

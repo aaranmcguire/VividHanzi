@@ -10,6 +10,7 @@ export const EXERCISE_TYPE_LABELS: Record<ExerciseType, MessageKey> = {
   'tone-choice': 'exerciseType.tones',
   'match-pinyin': 'exerciseType.matchPinyin',
   'match-meaning': 'exerciseType.matchMeaning',
+  sentence: 'exerciseType.sentence',
   writing: 'exerciseType.writing',
 }
 
@@ -22,5 +23,6 @@ export const EXERCISE_TYPE_HINTS: Record<ExerciseType, MessageKey> = {
   'tone-choice': 'exerciseType.tonesHint',
   'match-pinyin': 'exerciseType.matchPinyinHint',
   'match-meaning': 'exerciseType.matchMeaningHint',
+  sentence: 'exerciseType.sentenceHint',
   writing: 'exerciseType.writingHint',
 }

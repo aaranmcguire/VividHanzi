@@ -65,6 +65,7 @@ export function SettingsPage() {
             <SessionSizeSetting />
             <DailyGoalSetting />
             <ExerciseTypesSetting />
+            <ToggleSetting setting="aiHelp" label={t('settings.aiHelp')} hint={t('settings.aiHelpHint')} />
           </div>
         </SettingsSection>
         <SettingsSection title={t('settings.appearance')}>
@@ -227,7 +228,7 @@ function ExerciseTypesSetting() {
 }
 
 type ToggleSettingProps = {
-  setting: 'toneColors' | 'toneNumbers'
+  setting: 'toneColors' | 'toneNumbers' | 'aiHelp'
   label: string
   hint: string
 }

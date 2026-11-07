@@ -6,7 +6,7 @@ import { seededRandom } from '../../test/random.ts'
 import type { ExerciseDefinition } from './exerciseDefinitions.ts'
 import { applyHskLevel, createEmptyProgress, introduceItem, recordAnswer, recordWritingAnswer } from '../progress/progress.ts'
 import type { ProgressData } from '../progress/types.ts'
-import { hskStudyItems } from '../dictionary/hskDictionary.ts'
+import { hskStudyItems, hskWordItems } from '../dictionary/hskDictionary.ts'
 import { matchMeaningDefinition } from './matchExercises.ts'
 import {
   createSessionExercises,
@@ -55,6 +55,30 @@ describe('createSessionExercises', () => {
 
     expect(exercises).toHaveLength(testWords.length)
     expect(exercises.every((exercise) => exercise.item.kind === 'word')).toBe(true)
+  })
+})
+
+describe('createSessionExercises with sentence translation', () => {
+  it('builds sentence exercises around the session items', () => {
+    const pool = hskWordItems.filter((item) => item.entry.hskLevel === 1)
+    const items = pool.map((item) => ({ itemId: getStudyItemId(item), hskLevel: 1 as const }))
+    const progress = applyHskLevel(createEmptyProgress(), items, 1, new Date())
+    const exercises = createSessionExercises(pool, {
+      progress,
+      size: 5,
+      random: seededRandom(11),
+      definitions: [],
+      sentence: true,
+    })
+
+    expect(exercises.length).toBeGreaterThan(0)
+    for (const exercise of exercises) {
+      expect(exercise.type).toBe('sentence')
+      if (exercise.type !== 'sentence') throw new Error('expected a sentence exercise')
+      expect(
+        exercise.sentence.words.some((word) => word.id === getStudyItemId(exercise.item)),
+      ).toBe(true)
+    }
   })
 })
 

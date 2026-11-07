@@ -1,5 +1,6 @@
 import type { StudyItem, StudyItemId } from '../dictionary/studyItem.ts'
 import type { SkillResults } from '../progress/skills.ts'
+import type { BuiltSentence } from '../translation/types.ts'
 
 /**
  * Flashcard: the hanzi is shown and the user says what they knew: the
@@ -65,10 +66,27 @@ export interface WritingExercise {
 }
 
 /**
+ * Sentence translation: a whole sentence built from learned words, centered
+ * on `item`. The item's meaning progress records the answer, so it counts
+ * like any other exercise while the sentence is practiced in context.
+ */
+export interface SentenceExercise {
+  type: 'sentence'
+  item: StudyItem
+  sentence: BuiltSentence
+}
+
+/**
  * All exercise types. It is a union discriminated by `type`:
  * to add a new exercise, add its interface here.
  */
-export type Exercise = FlashcardExercise | ChoiceExercise | ToneExercise | MatchExercise | WritingExercise
+export type Exercise =
+  | FlashcardExercise
+  | ChoiceExercise
+  | ToneExercise
+  | MatchExercise
+  | WritingExercise
+  | SentenceExercise
 
 export type ExerciseType = Exercise['type']
 

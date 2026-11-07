@@ -2,6 +2,8 @@ import { compareByFrequency, getStudyItemId, type StudyItem, type StudyItemId } 
 import { createEmptyProgress, isDue } from '../progress/progress.ts'
 import { EXERCISE_SKILLS, getSkillStreak, type SkillResults } from '../progress/skills.ts'
 import type { ProgressData } from '../progress/types.ts'
+import { createSentenceForItem } from '../translation/sentenceBuilder.ts'
+import type { BuiltSentence } from '../translation/types.ts'
 import { shuffle, type RandomFn } from '../../lib/random.ts'
 import { EXERCISE_DEFINITIONS, type ExerciseDefinition } from './exerciseDefinitions.ts'
 import type { Exercise, ExerciseResult, ExerciseType } from './types.ts'
@@ -26,6 +28,8 @@ interface CreateSessionOptions {
   distractorPool?: readonly StudyItem[]
   /** Include writing exercises (the Settings switch). */
   writing?: boolean
+  /** Include sentence translation exercises (the Settings switch). */
+  sentence?: boolean
 }
 
 /**
@@ -48,6 +52,7 @@ export function createSessionExercises(
     now = new Date(),
     distractorPool = pool,
     writing = false,
+    sentence = false,
   }: CreateSessionOptions = {},
 ): Exercise[] {
   const exercises: Exercise[] = []
@@ -62,12 +67,25 @@ export function createSessionExercises(
       continue
     }
     const candidates = definitions.filter((definition) => definition.canBuild(item, distractorPool))
+    if (sentence) {
+      const built = createSentenceForItem(item, progress, random)
+      if (built) candidates.push(sentenceDefinition(item, built))
+    }
     const definition = pickDefinition(candidates, item, progress, random)
     if (!definition) continue
     const prefersLearned = MATCH_TYPES.has(definition.type) && definition.canBuild(item, learnedPool)
     exercises.push(definition.build(item, prefersLearned ? learnedPool : distractorPool, random))
   }
   return exercises
+}
+
+/** A sentence exercise for an item, as a definition so it can be picked like any other type. */
+function sentenceDefinition(item: StudyItem, sentence: BuiltSentence): ExerciseDefinition {
+  return {
+    type: 'sentence',
+    canBuild: () => true,
+    build: () => ({ type: 'sentence', item, sentence }),
+  }
 }
 
 /**
@@ -208,6 +226,7 @@ export function createRetryExercise(exercise: Exercise): Exercise {
   switch (exercise.type) {
     case 'flashcard':
     case 'writing':
+    case 'sentence':
       return exercise
     case 'tone-choice':
       return { ...exercise, options: rotate(exercise.options) }

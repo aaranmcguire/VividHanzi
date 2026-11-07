@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppProviders } from '../app/AppProviders.tsx'
 import { AppRoutes } from '../app/AppRoutes.tsx'
+import { LOCAL_BACKEND } from '../features/backend/config.ts'
 import { addItem, createCustomSet, setMeaning } from '../features/customSets/customSets.ts'
 import { annotateSentence } from '../features/customSets/pinyinEngine.ts'
 import { getDatasetReadings } from '../features/customSets/sentenceProcessing.ts'
@@ -39,7 +40,7 @@ function savedMyChinese(): KeyValueStorage {
 function renderAt(path: string, storage: KeyValueStorage) {
   render(
     <MemoryRouter initialEntries={[path]}>
-      <AppProviders storage={storage} loadChunk={createChunkLoader()}>
+      <AppProviders storage={storage} loadChunk={createChunkLoader()} backend={LOCAL_BACKEND}>
         <AppRoutes />
       </AppProviders>
     </MemoryRouter>,

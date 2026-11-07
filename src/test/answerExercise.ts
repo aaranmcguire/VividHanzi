@@ -10,6 +10,12 @@ export async function startSession(user: ReturnType<typeof userEvent.setup>) {
 
 /** Answers the current exercise, whatever its type (the type is random). */
 export async function answerCurrentExercise(user: ReturnType<typeof userEvent.setup>) {
+  const showTranslation = screen.queryByRole('button', { name: 'Show the translation' })
+  if (showTranslation) {
+    await user.click(showTranslation)
+    await user.click(screen.getByRole('button', { name: 'I got it right' }))
+    return
+  }
   const showAnswer = screen.queryByRole('button', { name: 'Show answer' })
   if (showAnswer) {
     await user.click(showAnswer)

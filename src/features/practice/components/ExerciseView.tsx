@@ -5,6 +5,7 @@ import type { Exercise } from '../types.ts'
 import { ChoiceQuestion } from './ChoiceQuestion.tsx'
 import { Flashcard } from './Flashcard.tsx'
 import { MatchQuestion } from './MatchQuestion.tsx'
+import { SentenceExerciseView } from './SentenceExerciseView.tsx'
 import { ToneQuestion } from './ToneQuestion.tsx'
 import { WritingExercise } from './WritingExercise.tsx'
 
@@ -41,6 +42,8 @@ export function ExerciseView({ exercise, dictionary, onAnswer, onSkip, onLookUp 
       return (
         <WritingExercise exercise={exercise} dictionary={dictionary} onAnswer={onAnswer} onSkip={onSkip} onLookUp={onLookUp} />
       )
+    case 'sentence':
+      return <SentenceExerciseView exercise={exercise} onAnswer={onAnswer} />
     default: {
       // If a case is missing, `exercise` would not be `never` and TypeScript would error here
       const missingCase: never = exercise

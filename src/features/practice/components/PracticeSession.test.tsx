@@ -2,9 +2,14 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDictionary } from '../../dictionary/dictionary.ts'
+import { hskWordItems } from '../../dictionary/hskDictionary.ts'
+import { getStudyItemId } from '../../dictionary/studyItem.ts'
 import { testCharacters, testWords } from '../../dictionary/testData.ts'
+import { applyHskLevel, createEmptyProgress } from '../../progress/progress.ts'
+import { createSentenceForItem } from '../../translation/sentenceBuilder.ts'
 import type { Exercise } from '../types.ts'
 import { hanzi } from '../../../test/hanzi.ts'
+import { seededRandom } from '../../../test/random.ts'
 import { renderWithProviders } from '../../../test/renderWithProviders.tsx'
 import { PracticeSession } from './PracticeSession.tsx'
 
@@ -100,6 +105,29 @@ describe('PracticeSession', () => {
 
     expect(screen.getByText('You knew 0 of 1.')).toBeInTheDocument()
     expect(screen.getByText('你')).toBeInTheDocument()
+  })
+
+  it('shows a missed sentence in the summary', async () => {
+    const user = userEvent.setup()
+    const pool = hskWordItems.filter((item) => item.entry.hskLevel === 1)
+    const progress = applyHskLevel(
+      createEmptyProgress(),
+      pool.map((item) => ({ itemId: getStudyItemId(item), hskLevel: 1 as const })),
+      1,
+      new Date(),
+    )
+    const item = pool.find((word) => word.entry.hanzi === '苹果')!
+    const sentence = createSentenceForItem(item, progress, seededRandom(12))!
+    renderSession({ sessionExercises: [{ type: 'sentence', item, sentence }] })
+
+    await user.click(screen.getByRole('button', { name: 'Show the translation' }))
+    await user.click(screen.getByRole('button', { name: 'Not quite' }))
+    await user.click(screen.getByRole('button', { name: 'Show the translation' }))
+    await user.click(screen.getByRole('button', { name: 'I got it right' }))
+
+    expect(screen.getByRole('heading', { name: 'Session complete' })).toBeInTheDocument()
+    expect(screen.getByText('Sentences to review')).toBeInTheDocument()
+    expect(screen.getByText(sentence.english)).toBeInTheDocument()
   })
 
   it('"Practice again" requests a new session', async () => {

@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import { AppProviders } from '../../app/AppProviders.tsx'
 import { AppRoutes } from '../../app/AppRoutes.tsx'
+import { LOCAL_BACKEND } from '../../features/backend/config.ts'
 import { addItem, createCustomSet } from '../../features/customSets/customSets.ts'
 import { loadCustomSets, saveCustomSets } from '../../features/customSets/storage.ts'
 import { hskDictionary } from '../../features/dictionary/hskDictionary.ts'
@@ -16,7 +17,7 @@ import { paragraphWithText } from '../../test/text.ts'
 function renderAt(path: string, storage: KeyValueStorage = memoryStorage()) {
   render(
     <MemoryRouter initialEntries={[path]}>
-      <AppProviders storage={storage} loadChunk={createChunkLoader()}>
+      <AppProviders storage={storage} loadChunk={createChunkLoader()} backend={LOCAL_BACKEND}>
         <AppRoutes />
       </AppProviders>
     </MemoryRouter>,

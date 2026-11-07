@@ -51,13 +51,22 @@ export function PracticeSession({ exercises, dictionary, onResult, onRestart }: 
 
   if (!exercise) {
     const firstAttempts = getFirstAttemptResults(state)
-    const missedItems = firstAttempts.flatMap((result, index) =>
-      result.correct ? [] : [state.exercises[index]!.item],
+    const missedExercises = firstAttempts.flatMap((result, index) => {
+      if (result.correct) return []
+      const missed = state.exercises[index]
+      return missed ? [missed] : []
+    })
+    const missedItems = missedExercises.flatMap((missed) =>
+      missed.type === 'sentence' ? [] : [missed.item],
+    )
+    const missedSentences = missedExercises.flatMap((missed) =>
+      missed.type === 'sentence' ? [missed.sentence] : [],
     )
     return (
       <SessionSummary
         summary={summarizeResults(firstAttempts)}
         missedItems={missedItems}
+        missedSentences={missedSentences}
         onRestart={onRestart}
         onBack={back}
       />

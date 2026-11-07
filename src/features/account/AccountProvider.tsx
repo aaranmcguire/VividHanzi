@@ -152,6 +152,7 @@ export function AccountProvider({ children, storage, config = DEFAULT_CONFIG }: 
       loading,
       user,
       syncStatus: user ? syncStatus : 'idle',
+      provider: 'supabase',
       signInWithGoogle: async () => {
         if (!client) return
         const { error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: appUrl() } })

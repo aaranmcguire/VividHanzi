@@ -2,6 +2,7 @@ import { render } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter } from 'react-router'
 import { AppProviders } from '../app/AppProviders.tsx'
+import { LOCAL_BACKEND, type BackendConfig } from '../features/backend/config.ts'
 import type { DictionaryChunk } from '../features/dictionary/fullDictionary.ts'
 import type { LoadChunk } from '../features/dictionary/dictionaryStore.ts'
 import { createMemoryCache } from '../features/dictionary/runtime/dictionaryCache.ts'
@@ -23,16 +24,30 @@ interface Options {
   loadChunk?: LoadChunk
   /** External source responses; offline by default. */
   fetchFn?: typeof fetch
+  /** Fixed backend; local storage by default. */
+  backend?: BackendConfig
 }
 
 /** Renders as in the app: with the router and the shared state (progress, settings). */
 export function renderWithProviders(
   ui: ReactElement,
-  { path = '/', storage = memoryStorage(), loadChunk = emptyChunks, fetchFn = offlineFetch }: Options = {},
+  {
+    path = '/',
+    storage = memoryStorage(),
+    loadChunk = emptyChunks,
+    fetchFn = offlineFetch,
+    backend = LOCAL_BACKEND,
+  }: Options = {},
 ) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <AppProviders storage={storage} loadChunk={loadChunk} cache={createMemoryCache()} fetchFn={fetchFn}>
+      <AppProviders
+        storage={storage}
+        loadChunk={loadChunk}
+        cache={createMemoryCache()}
+        fetchFn={fetchFn}
+        backend={backend}
+      >
         {ui}
       </AppProviders>
     </MemoryRouter>,

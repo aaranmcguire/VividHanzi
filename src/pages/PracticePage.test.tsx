@@ -3,7 +3,9 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { topicDefinitions } from '../data/topics.ts'
 import { loadMyStudies } from '../features/myStudies/storage.ts'
-import { createEmptyProgress, getItemStatus, introduceItem, isDue, isExcluded, recordAnswer } from '../features/progress/progress.ts'
+import { applyHskLevel, createEmptyProgress, getItemStatus, introduceItem, isDue, isExcluded, recordAnswer } from '../features/progress/progress.ts'
+import { hskWordItems } from '../features/dictionary/hskDictionary.ts'
+import { getStudyItemId } from '../features/dictionary/studyItem.ts'
 import { loadProgress, saveProgress } from '../features/progress/storage.ts'
 import type { ProgressData } from '../features/progress/types.ts'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../features/settings/settings.ts'
@@ -28,6 +30,23 @@ describe('PracticePage', () => {
     await startSession(user)
 
     expect(screen.getByText('Card 1 of 5')).toBeInTheDocument()
+  })
+
+  it('runs a session with only sentence translation', async () => {
+    const user = userEvent.setup()
+    const storage = memoryStorage()
+    const items = hskWordItems.flatMap((item) =>
+      item.entry.hskLevel === undefined
+        ? []
+        : [{ itemId: getStudyItemId(item), hskLevel: item.entry.hskLevel }],
+    )
+    saveProgress(applyHskLevel(createEmptyProgress(), items, 1, new Date()), storage)
+    saveSettings({ ...DEFAULT_SETTINGS, exerciseTypes: ['sentence'], sessionSize: 5 }, storage)
+    renderWithProviders(<PracticePage />, { storage })
+    await startSession(user)
+
+    expect(screen.getByText(/^Card 1 of \d+$/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Show the translation' })).toBeInTheDocument()
   })
 
   it('saves each answer to progress', async () => {
@@ -75,6 +94,7 @@ describe('PracticePage: choosing exercise types before a session', () => {
     expect(screen.getByRole('checkbox', { name: /^Meaning/ })).not.toBeChecked()
     expect(screen.queryByText(/^Card 1/)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Start' })).toHaveFocus()
+    expect(screen.getByRole('checkbox', { name: /^Sentence translation/ })).toBeInTheDocument()
   })
 
   it('the session uses the types picked, and they are saved for next time', async () => {

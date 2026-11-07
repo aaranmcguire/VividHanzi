@@ -21,6 +21,7 @@ export const EXERCISE_SKILLS: Record<ExerciseType, Skill> = {
   'tone-choice': 'tones',
   'match-pinyin': 'pinyin',
   'match-meaning': 'meaning',
+  sentence: 'meaning',
   writing: 'writing',
 }
 

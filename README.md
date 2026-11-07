@@ -31,6 +31,12 @@ phone.
   tones, writing).
 - **Many exercise types:** flashcards, meaning, hanzi, pinyin, tones, match
   pinyin, match meanings and writing.
+- **Sentence translation:** sentences built only from the words you have
+  learned, translated into English and checked against a reference.
+- **Optional AI help:** on Cloudflare Workers with Workers AI, DeepSeek 4.1
+  grades translations and suggests hints and memory tips. Without the AI
+  binding the mode keeps its normal self-grading; DeepSeek 4.1 requires a
+  paid Workers plan.
 - **Writing practice** stroke by stroke with hints, sized for phones.
 - **Full dictionary** (CC-CEDICT, about 118,000 entries): stroke order
   animation, radicals, components, etymology and example sentences where every
@@ -81,12 +87,58 @@ accounts. See [`docs/ACCOUNTS.md`](docs/ACCOUNTS.md).
 | `npm run data:build` | Regenerates the dataset in `src/data/`, `public/strokes/` and `public/examples/` (see `docs/DATA_SOURCES.md`) |
 | `npm run data:validate` | Validates the generated dataset without downloading anything |
 | `npm run seo:pages` | After a build, writes a static page per HSK character and word, `sitemap.xml` and `robots.txt` into `dist/` (needs `SITE_URL`; the Deploy workflow runs it) |
+| `npm run db:migrate` | Applies the D1 schema to the remote database |
+| `npm run db:migrate:local` | Applies the D1 schema to the local Wrangler database |
+
+## Storage and identity
+
+The app keeps a copy in the browser (`localStorage`) so it loads instantly and
+works offline, and syncs that copy to a cloud backend when the Worker is
+configured. `GET /api/config` chooses the backend at runtime; the switches are
+the `vars` in `wrangler.jsonc`:
+
+| Identity | Storage | Use |
+| --- | --- | --- |
+| Cloudflare Access | D1 | Recommended for a private deployment |
+| Anonymous device token | D1 | Previews and quick setups without Zero Trust |
+| Supabase auth | Supabase | The existing optional account sync |
+| Local | Local | Static hosting with no cloud |
+
+### D1 + Cloudflare Access
+
+1. Create the database: `npx wrangler d1 create vividhanzi`.
+2. Put its id in `wrangler.jsonc` (`d1_databases[0].database_id`). The id in
+   the repository is the deployment's database; replace it if you deploy
+   elsewhere.
+3. Apply the schema: `npm run db:migrate`.
+4. In **Zero Trust → Access → Applications**, add a self-hosted application
+   for the Worker domain and a policy. Copy the team domain and the
+   application audience (AUD).
+5. Set these vars in `wrangler.jsonc`:
+   ```jsonc
+   "vars": {
+     "IDENTITY_PROVIDER": "cloudflare-access",
+     "STORAGE_BACKEND": "d1",
+     "ALLOW_ANONYMOUS": "false",
+     "ACCESS_TEAM_DOMAIN": "your-team.cloudflareaccess.com",
+     "ACCESS_AUD": "your-application-aud"
+   }
+   ```
+6. Deploy: `npx wrangler deploy`.
+
+Without Access, use `IDENTITY_PROVIDER: "anonymous"` and
+`ALLOW_ANONYMOUS: "true"`: each browser gets a random device token and its data
+still lives in D1, but it isn't tied to an account. To use Supabase instead,
+set `STORAGE_BACKEND` and `IDENTITY_PROVIDER` to `supabase`; the existing
+Supabase auth and `supabase/schema.sql` are used. The preview deployment uses
+anonymous + D1.
 
 ## Tech stack
 
 React 19 · TypeScript (strict) · Vite · Tailwind CSS v4 · React Router ·
-Hanzi Writer · Supabase (optional sync) · Vitest + Testing Library · oxlint.
-Hosted on GitHub Pages.
+Hanzi Writer · Cloudflare Workers, D1 and Workers AI · Supabase (optional
+sync) · Vitest + Testing Library · oxlint. Deployable to Cloudflare Workers or
+GitHub Pages.
 
 ## Project structure
 

@@ -41,6 +41,15 @@ export function recordAnswer(
 }
 
 /**
+ * Records an answer that isn't about a single item, like translating a whole
+ * sentence: only the day's activity changes, so it counts for the daily goal
+ * and the streak but doesn't alter any item's spaced repetition.
+ */
+export function recordPracticeAnswer(progress: ProgressData, correct: boolean, now: Date): ProgressData {
+  return { ...progress, activity: addToActivity(progress.activity, correct, now) }
+}
+
+/**
  * Like recordAnswer, for a writing exercise: it updates the item's writing
  * record (see ProgressData.writing) and leaves recognition as it was. It
  * counts for the day's activity and the streak like any other answer.

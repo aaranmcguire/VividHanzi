@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
+import { LOCAL_BACKEND } from '../features/backend/config.ts'
 import { t } from '../i18n/index.ts'
 import { memoryStorage } from '../test/memoryStorage.ts'
 import { AppProviders } from './AppProviders.tsx'
@@ -11,7 +12,7 @@ import { NAVIGATION_ITEMS } from './navigation.ts'
 function renderAt(path: string) {
   render(
     <MemoryRouter initialEntries={[path]}>
-      <AppProviders storage={memoryStorage()}>
+      <AppProviders storage={memoryStorage()} backend={LOCAL_BACKEND}>
         <AppRoutes />
       </AppProviders>
     </MemoryRouter>,

@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { AppProviders } from '../../app/AppProviders.tsx'
 import { AppRoutes } from '../../app/AppRoutes.tsx'
+import { LOCAL_BACKEND } from '../../features/backend/config.ts'
 import { topicDefinitions } from '../../data/topics.ts'
 import { loadMyStudies } from '../../features/myStudies/storage.ts'
 import { createEmptyProgress, introduceItem, recordAnswer } from '../../features/progress/progress.ts'
@@ -14,7 +15,7 @@ import { memoryStorage } from '../../test/memoryStorage.ts'
 function renderAt(path: string, storage: KeyValueStorage = memoryStorage()) {
   render(
     <MemoryRouter initialEntries={[path]}>
-      <AppProviders storage={storage}>
+      <AppProviders storage={storage} backend={LOCAL_BACKEND}>
         <AppRoutes />
       </AppProviders>
     </MemoryRouter>,

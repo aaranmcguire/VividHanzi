@@ -6,7 +6,7 @@ import { DEFAULT_SETTINGS, isSessionSize, loadSettings, saveSettings } from './s
 describe('saveSettings / loadSettings', () => {
   it('saves and loads settings', () => {
     const storage = memoryStorage()
-    const settings = { sessionSize: 20, dailyGoal: 50, toneColors: false, toneNumbers: true, exerciseTypes: ['pinyin-choice', 'writing'], theme: 'dark', hskLevel: 3 } as const
+    const settings = { sessionSize: 20, dailyGoal: 50, toneColors: false, toneNumbers: true, exerciseTypes: ['pinyin-choice', 'writing'], theme: 'dark', hskLevel: 3, aiHelp: false } as const
     saveSettings(settings, storage)
 
     expect(loadSettings(storage)).toEqual(settings)
@@ -18,7 +18,25 @@ describe('saveSettings / loadSettings', () => {
 
   it('settings saved before tones existed take the default values', () => {
     const storage = memoryStorage({ 'hanzivocab.settings': JSON.stringify({ version: 1, sessionSize: 5 }) })
-    expect(loadSettings(storage)).toEqual({ sessionSize: 5, dailyGoal: 20, toneColors: true, toneNumbers: false, exerciseTypes: EXERCISE_TYPES, theme: 'system', hskLevel: null })
+    expect(loadSettings(storage)).toEqual({ sessionSize: 5, dailyGoal: 20, toneColors: true, toneNumbers: false, exerciseTypes: EXERCISE_TYPES, theme: 'system', hskLevel: null, aiHelp: true })
+  })
+
+  it('adds sentence translation to version 1 settings that had every older type', () => {
+    const older = EXERCISE_TYPES.filter((type) => type !== 'sentence')
+    const storage = memoryStorage({
+      'hanzivocab.settings': JSON.stringify({ version: 1, exerciseTypes: older }),
+    })
+
+    expect(loadSettings(storage).exerciseTypes).toEqual(EXERCISE_TYPES)
+  })
+
+  it('respects a version 2 choice to leave sentence translation off', () => {
+    const older = EXERCISE_TYPES.filter((type) => type !== 'sentence')
+    const storage = memoryStorage({
+      'hanzivocab.settings': JSON.stringify({ version: 2, exerciseTypes: older }),
+    })
+
+    expect(loadSettings(storage).exerciseTypes).toEqual(older)
   })
 
   it('ignores invalid values', () => {

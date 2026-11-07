@@ -13,9 +13,22 @@ const SYNC_STATUS_TEXT: Record<SyncStatus, MessageKey> = {
 
 type EmailState = 'idle' | 'sending' | 'sent' | 'error'
 
-/** Sign in or out. Hidden when no Supabase project is configured. */
+/**
+ * Account or cloud-sync card. Supabase shows the sign-in form; Cloudflare
+ * Access is handled at the edge, and an anonymous device shows its D1 sync
+ * state. Hidden when no cloud backend is configured.
+ */
 export function AccountCard() {
-  const { enabled, loading, user, syncStatus, signInWithGoogle, sendEmailLink, signOut } = useAccount()
+  const {
+    enabled,
+    loading,
+    user,
+    syncStatus,
+    provider,
+    signInWithGoogle,
+    sendEmailLink,
+    signOut,
+  } = useAccount()
   const [email, setEmail] = useState('')
   const [emailState, setEmailState] = useState<EmailState>('idle')
   const [googleError, setGoogleError] = useState(false)
@@ -23,14 +36,52 @@ export function AccountCard() {
 
   if (!enabled || loading) return null
 
+  if (provider === 'cloudflare-access') {
+    return (
+      <Card className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold">{t('account.cloudTitle')}</h2>
+        {user ? (
+          <>
+            <p>{t('account.signedInAs', { email: user.email ?? '' })}</p>
+            <SyncStatusLine status={syncStatus} />
+            <div>
+              <Button variant="secondary" onClick={() => void signOut()}>
+                {t('account.signOut')}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-ink-muted">{t('account.accessRequired')}</p>
+            <div>
+              <Button variant="secondary" onClick={() => window.location.reload()}>
+                {t('account.reload')}
+              </Button>
+            </div>
+          </>
+        )}
+      </Card>
+    )
+  }
+
+  if (provider === 'anonymous') {
+    return (
+      <Card className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold">{t('account.cloudTitle')}</h2>
+        <p className="text-ink-muted">
+          {t(user ? 'account.cloudAnonymous' : 'account.syncUnavailable')}
+        </p>
+        {user && <SyncStatusLine status={syncStatus} />}
+      </Card>
+    )
+  }
+
   if (user) {
     return (
       <Card className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">{t('account.title')}</h2>
         <p>{t('account.signedInAs', { email: user.email ?? '' })}</p>
-        <p role="status" className={`text-sm ${syncStatus === 'error' ? 'text-danger' : 'text-ink-muted'}`}>
-          {t(SYNC_STATUS_TEXT[syncStatus])}
-        </p>
+        <SyncStatusLine status={syncStatus} />
         <div>
           <Button variant="secondary" onClick={() => void signOut()}>
             {t('account.signOut')}
@@ -107,5 +158,13 @@ export function AccountCard() {
         )}
       </form>
     </Card>
+  )
+}
+
+function SyncStatusLine({ status }: { status: SyncStatus }) {
+  return (
+    <p role="status" className={`text-sm ${status === 'error' ? 'text-danger' : 'text-ink-muted'}`}>
+      {t(SYNC_STATUS_TEXT[status])}
+    </p>
   )
 }

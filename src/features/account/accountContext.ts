@@ -5,16 +5,21 @@ export interface AccountUser {
   email: string | null
 }
 
+/** Where the account/cloud sync comes from. */
+export type AccountProviderKind = 'cloudflare-access' | 'supabase' | 'anonymous' | 'local'
+
 /** State of the cloud copy: `idle` when signed out, `error` if the last attempt failed (it retries on its own). */
 export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error'
 
 export interface AccountContextValue {
-  /** A Supabase project is configured. Otherwise the app works without accounts. */
+  /** Cloud sync is configured. Otherwise the app works with local storage only. */
   enabled: boolean
   /** Still loading: we don't know yet whether there is a session. */
   loading: boolean
   user: AccountUser | null
   syncStatus: SyncStatus
+  /** Which identity provider is active. */
+  provider: AccountProviderKind
   /** Goes to Google's page; on return, the user is signed in. */
   signInWithGoogle: () => Promise<void>
   /** Sends an email with a passwordless sign-in link. */
@@ -27,6 +32,7 @@ const noAccounts: AccountContextValue = {
   loading: false,
   user: null,
   syncStatus: 'idle',
+  provider: 'local',
   signInWithGoogle: () => Promise.resolve(),
   sendEmailLink: () => Promise.resolve(),
   signOut: () => Promise.resolve(),

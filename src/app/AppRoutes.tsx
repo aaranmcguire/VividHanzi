@@ -49,6 +49,7 @@ export function AppRoutes() {
         <Route path="readings/:readingId" element={<ReadingPage />} />
         {/* Old URLs: they still work */}
         <Route path="practice" element={<Navigate to="/study/practice" replace />} />
+        <Route path="translate" element={<Navigate to="/study/practice?type=sentence" replace />} />
         <Route path="vocabulary" element={<Navigate to="/dictionary?kind=word" replace />} />
         <Route path="characters" element={<Navigate to="/dictionary?kind=character" replace />} />
         <Route path="*" element={<NotFoundPage />} />

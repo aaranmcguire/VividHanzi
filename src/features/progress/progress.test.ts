@@ -12,6 +12,7 @@ import {
   markItemKnown,
   MASTERED_LEVEL,
   recordAnswer,
+  recordPracticeAnswer,
   recordWritingAnswer,
   restoreProgress,
   setItemExcluded,
@@ -28,6 +29,16 @@ describe('recordWritingAnswer', () => {
     expect(written.items).toBe(read.items)
     expect(written.writing['word:谢谢']).toMatchObject({ timesSeen: 1, timesWrong: 1, masteryLevel: 0 })
     expect(written.activity['2026-09-29']).toEqual({ answers: 1, correct: 0 })
+  })
+})
+
+describe('recordPracticeAnswer', () => {
+  it('counts for the day without touching any item', () => {
+    const before = createEmptyProgress()
+    const after = recordPracticeAnswer(before, false, monday)
+
+    expect(after.items).toBe(before.items)
+    expect(after.activity['2026-09-28']).toEqual({ answers: 1, correct: 0 })
   })
 })
 

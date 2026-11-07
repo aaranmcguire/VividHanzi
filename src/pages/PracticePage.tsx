@@ -22,7 +22,7 @@ import { selectWritingItems, WRITING_MIN_LEVEL } from '../features/practice/writ
 import { useProgress } from '../features/progress/progressContext.ts'
 import { getDifficultItems } from '../features/progress/stats.ts'
 import type { ProgressData } from '../features/progress/types.ts'
-import { isWritingOnly, type Settings } from '../features/settings/settings.ts'
+import { isSentenceOnly, isWritingOnly, type Settings } from '../features/settings/settings.ts'
 import { useSettings } from '../features/settings/settingsContext.ts'
 import { useStudySets } from '../features/studySets/useStudySets.ts'
 import { SessionTypeLabel } from '../features/studySets/components/SessionTypeLabel.tsx'
@@ -38,21 +38,29 @@ let nextSessionId = 0
 /**
  * A session with the Settings exercise types. With writing alone, the items
  * of the pool that can be written (none if nothing is known well enough to
- * read yet). `poolSize` tells an empty pool apart from nothing to write.
+ * read yet). A sentence-only session draws only from learned items, since
+ * sentences can't be built around new words. `poolSize` tells an empty pool
+ * apart from nothing to practice.
  */
 function createPracticeSession(pool: readonly StudyItem[], progress: ProgressData, settings: Settings) {
   nextSessionId += 1
+  const practicePool = isSentenceOnly(settings.exerciseTypes)
+    ? pool.filter(
+        (item) => item.kind === 'word' && progress.items[getStudyItemId(item)] !== undefined,
+      )
+    : pool
   const exercises: Exercise[] = isWritingOnly(settings.exerciseTypes)
-    ? selectWritingItems(pool, progress, new Date(), settings.sessionSize).map((item) => ({ type: 'writing', item }))
+    ? selectWritingItems(practicePool, progress, new Date(), settings.sessionSize).map((item) => ({ type: 'writing', item }))
     : // Wrong answers come from the whole dictionary, even if the set is small
-      createSessionExercises(pool, {
+      createSessionExercises(practicePool, {
         progress,
         size: settings.sessionSize,
         distractorPool: hskStudyItems,
         definitions: getDefinitions(settings.exerciseTypes),
         writing: settings.exerciseTypes.includes('writing'),
+        sentence: settings.exerciseTypes.includes('sentence'),
       })
-  return { id: nextSessionId, exercises, poolSize: pool.length }
+  return { id: nextSessionId, exercises, poolSize: practicePool.length }
 }
 
 /**
@@ -73,6 +81,7 @@ export function PracticePage() {
   if (searchParams.get('focus') === 'difficult') return <DifficultPractice />
   const type = searchParams.get('type')
   if (searchParams.get('focus') === 'writing' || type === 'writing') return <WritingPractice />
+  if (type === 'sentence') return <SentencePractice />
   if (type !== null) {
     const definition = EXERCISE_DEFINITIONS.find((candidate) => candidate.type === type)
     return definition ? <TypePractice key={type} definition={definition} /> : <NotFoundPage />
@@ -115,7 +124,10 @@ function Practice() {
     <>
       <PageHeader title={t('practice.title')} description={t('practice.description')} />
       {started && session.exercises.length === 0 ? (
-        <NothingToWrite onChooseTypes={() => setStarted(false)} />
+        <NothingToPractice
+          message={emptyPracticeMessage(settings.exerciseTypes)}
+          onChooseTypes={() => setStarted(false)}
+        />
       ) : started ? (
         // key: a new session mounts a new PracticeSession, with its state from scratch
         <PracticeSession
@@ -254,7 +266,75 @@ function DifficultSession({ itemIds }: { itemIds: readonly StudyItemId[] }) {
     }
     return <SessionStart onStart={start} />
   }
-  if (session.exercises.length === 0) return <NothingToWrite onChooseTypes={() => setStarted(false)} />
+  if (session.exercises.length === 0) {
+    return (
+      <NothingToPractice
+        message={emptyPracticeMessage(settings.exerciseTypes)}
+        onChooseTypes={() => setStarted(false)}
+      />
+    )
+  }
+
+  return (
+    <PracticeSession
+      key={session.id}
+      exercises={session.exercises}
+      dictionary={dictionary}
+      onResult={recordResult}
+      onRestart={() => setSession(createSession(progress))}
+    />
+  )
+}
+
+/**
+ * Practice sentences: only sentence translation, over everything the user
+ * can already read. It doesn't depend on the Settings switch.
+ */
+function SentencePractice() {
+  const { progress } = useProgress()
+  const [itemIds] = useState(() =>
+    Object.values(progress.items).flatMap((item) =>
+      item !== undefined && item.itemId.startsWith('word:') ? [item.itemId] : [],
+    ),
+  )
+
+  return (
+    <>
+      <PageHeader title={t('practice.sentenceTitle')} description={t('practice.sentenceDescription')} />
+      <LoadEntries itemIds={itemIds}>
+        <SentenceSession itemIds={itemIds} />
+      </LoadEntries>
+    </>
+  )
+}
+
+function SentenceSession({ itemIds }: { itemIds: readonly StudyItemId[] }) {
+  const dictionary = useDictionary()
+  const { progress, recordResult } = useProgress()
+  const { sessionSize } = useSettings().settings
+  const createSession = (current: ProgressData) => {
+    nextSessionId += 1
+    const pool = itemIds.flatMap((itemId) => getStudyItem(dictionary, itemId) ?? [])
+    const exercises = createSessionExercises(pool, {
+      progress: current,
+      size: sessionSize,
+      definitions: [],
+      sentence: true,
+    })
+    return { id: nextSessionId, exercises }
+  }
+  const [session, setSession] = useState(() => createSession(progress))
+
+  if (session.exercises.length === 0) {
+    return (
+      <Card className="mx-auto flex max-w-xl flex-col items-start gap-4">
+        <p className="text-lg">{t('practice.sentenceEmpty')}</p>
+        <ButtonLink to="/study" variant="secondary">
+          {t('nav.study')}
+        </ButtonLink>
+      </Card>
+    )
+  }
 
   return (
     <PracticeSession
@@ -373,7 +453,14 @@ function StudyPractice({ set, reviewAll }: { set: StudySet; reviewAll: boolean }
     }
     return <SessionStart onStart={start} />
   }
-  if (session.exercises.length === 0) return <NothingToWrite onChooseTypes={() => setStarted(false)} />
+  if (session.exercises.length === 0) {
+    return (
+      <NothingToPractice
+        message={emptyPracticeMessage(settings.exerciseTypes)}
+        onChooseTypes={() => setStarted(false)}
+      />
+    )
+  }
 
   return (
     <>
@@ -457,12 +544,18 @@ function EmptySession({ set, message, children }: { set: StudySet; message: stri
   )
 }
 
-/** Writing alone was chosen, but none of the session's items can be written yet. */
-function NothingToWrite({ onChooseTypes }: { onChooseTypes: () => void }) {
+/** The chosen exercise types can't produce an exercise with these items yet. */
+function NothingToPractice({ message, onChooseTypes }: { message: string; onChooseTypes: () => void }) {
   return (
     <Card className="mx-auto flex max-w-xl flex-col items-start gap-4">
-      <p className="text-lg">{t('practice.writingOnlyEmpty')}</p>
+      <p className="text-lg">{message}</p>
       <Button onClick={onChooseTypes}>{t('practice.chooseOtherTypes')}</Button>
     </Card>
   )
+}
+
+function emptyPracticeMessage(types: Settings['exerciseTypes']): string {
+  if (isSentenceOnly(types)) return t('practice.sentenceEmpty')
+  if (isWritingOnly(types)) return t('practice.writingOnlyEmpty')
+  return t('practice.nothingToPractice')
 }

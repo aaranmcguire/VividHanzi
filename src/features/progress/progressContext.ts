@@ -10,6 +10,8 @@ export interface ProgressContextValue {
   recordAnswer: (itemId: StudyItemId, correct: boolean) => void
   /** Saves an exercise's answer: writing ones to writing progress, the rest to recognition. */
   recordResult: (result: ExerciseResult) => void
+  /** Saves an answer that isn't about one item (a sentence translation): only activity changes. */
+  recordPracticeAnswer: (correct: boolean) => void
   /** Marks an item as learned (Learn session). */
   introduceItem: (itemId: StudyItemId) => void
   /** Marks characters as taught for writing (see markCharactersTaught). */

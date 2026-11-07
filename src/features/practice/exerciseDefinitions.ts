@@ -26,8 +26,9 @@ export const flashcardDefinition: ExerciseDefinition<FlashcardExercise> = {
 }
 
 /**
- * Every exercise type, in the order Settings and Home list them. Writing has
- * no definition: sessions add it on their own when an item's writing is due.
+ * Every exercise type, in the order Settings and Home list them. Writing and
+ * sentence translation have no definition: writing is added when an item's
+ * writing is due, and sentences are built from learned words in session.ts.
  */
 export const EXERCISE_TYPES: readonly ExerciseType[] = [
   'flashcard',
@@ -37,6 +38,7 @@ export const EXERCISE_TYPES: readonly ExerciseType[] = [
   'tone-choice',
   'match-pinyin',
   'match-meaning',
+  'sentence',
   'writing',
 ]
 

@@ -82,6 +82,18 @@ describe('SettingsPage', () => {
     expect(screen.getByText('mā')).toBeInTheDocument()
   })
 
+  it('turns AI help on and off', async () => {
+    const user = userEvent.setup()
+    const storage = memoryStorage()
+    renderWithProviders(<SettingsPage />, { storage })
+
+    const aiHelp = screen.getByRole('checkbox', { name: /AI help in Translate/ })
+    expect(aiHelp).toBeChecked()
+
+    await user.click(aiHelp)
+    expect(loadSettings(storage).aiHelp).toBe(false)
+  })
+
   it('resets progress only after confirming', async () => {
     const user = userEvent.setup()
     const storage = memoryStorage()
@@ -131,7 +143,15 @@ describe('SettingsPage', () => {
     expect(loadSettings(storage).exerciseTypes).not.toContain('tone-choice')
 
     // Writing alone is allowed; its box then can't be unchecked
-    for (const name of [/^Flashcards/, /^Meaning/, /^Hanzi/, /^Pinyin/, /^Match pinyin/, /^Match meanings/]) {
+    for (const name of [
+      /^Flashcards/,
+      /^Meaning/,
+      /^Hanzi/,
+      /^Pinyin/,
+      /^Match pinyin/,
+      /^Match meanings/,
+      /^Sentence translation/,
+    ]) {
       await user.click(within(types).getByRole('checkbox', { name }))
     }
     expect(within(types).getByRole('checkbox', { name: /^Writing/ })).toBeDisabled()

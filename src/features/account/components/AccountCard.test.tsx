@@ -10,6 +10,7 @@ function renderCard(overrides: Partial<AccountContextValue> = {}) {
     loading: false,
     user: null,
     syncStatus: 'idle',
+    provider: 'supabase',
     signInWithGoogle: vi.fn(() => Promise.resolve()),
     sendEmailLink: vi.fn(() => Promise.resolve()),
     signOut: vi.fn(() => Promise.resolve()),
@@ -40,6 +41,33 @@ describe('AccountCard', () => {
     await user.click(screen.getByRole('button', { name: 'Send link' }))
     expect(account.sendEmailLink).toHaveBeenCalledWith('arnau@example.com')
     expect(await screen.findByText('Check your email and open the link in this browser.')).toBeInTheDocument()
+  })
+
+  it('shows D1 cloud sync for an anonymous device', () => {
+    renderCard({
+      provider: 'anonymous',
+      user: { id: 'u1', email: null },
+      syncStatus: 'synced',
+    })
+
+    expect(screen.getByRole('heading', { name: 'Cloud sync' })).toBeInTheDocument()
+    expect(screen.getByText(/Cloudflare D1/)).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Your progress is synced.')
+    expect(screen.queryByRole('button', { name: 'Sign out' })).not.toBeInTheDocument()
+  })
+
+  it('shows a Cloudflare Access account and can sign out', async () => {
+    const user = userEvent.setup()
+    const account = renderCard({
+      provider: 'cloudflare-access',
+      user: { id: 'u1', email: 'arnau@example.com' },
+      syncStatus: 'synced',
+    })
+
+    expect(screen.getByRole('heading', { name: 'Cloud sync' })).toBeInTheDocument()
+    expect(screen.getByText('Signed in as arnau@example.com.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Sign out' }))
+    expect(account.signOut).toHaveBeenCalled()
   })
 
   it('signed in, shows the account and sync state and can sign out', async () => {
