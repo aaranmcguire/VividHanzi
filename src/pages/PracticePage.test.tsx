@@ -96,6 +96,8 @@ describe('PracticePage', () => {
     expect(screen.getByText(/^Card 2 of \d+$/)).toBeInTheDocument()
     expect(Object.keys(loadProgress(storage).items)).toHaveLength(1)
 
+    // A listening-translation card focuses its input, where Backspace edits text
+    ;(document.activeElement as HTMLElement).blur()
     await user.keyboard('{Backspace}')
     expect(screen.getByText(/^Card 1 of \d+$/)).toBeInTheDocument()
     expect(loadProgress(storage)).toEqual(createEmptyProgress())

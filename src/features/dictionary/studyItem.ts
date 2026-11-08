@@ -15,9 +15,11 @@ export type StudyItem = { kind: 'character'; entry: Character } | { kind: 'word'
  * Unique identifier of a study item, e.g. "char:好" or "word:好".
  *
  * The prefix is needed because 好 is both a character and a word in
- * HSK 1, and their progress is tracked separately.
+ * HSK 1, and their progress is tracked separately. "sentence:" ids belong
+ * to sentence learning (see features/sentences) and are never dictionary
+ * entries; they share the type so progress helpers can store both.
  */
-export type StudyItemId = `char:${string}` | `word:${string}`
+export type StudyItemId = `char:${string}` | `word:${string}` | `sentence:${string}`
 
 export function getStudyItemId(item: StudyItem): StudyItemId {
   return item.kind === 'character' ? `char:${item.entry.id}` : `word:${item.entry.id}`
@@ -31,8 +33,9 @@ export function listStudyItems(dictionary: Dictionary): StudyItem[] {
   ]
 }
 
-/** Finds an item by its id ("char:好" or "word:你好"). */
+/** Finds an item by its id ("char:好" or "word:你好"). Sentence ids have no dictionary entry. */
 export function getStudyItem(dictionary: Dictionary, id: StudyItemId): StudyItem | undefined {
+  if (id.startsWith('sentence:')) return undefined
   if (id.startsWith('char:')) {
     const entry = getCharacter(dictionary, id.slice('char:'.length))
     return entry && { kind: 'character', entry }

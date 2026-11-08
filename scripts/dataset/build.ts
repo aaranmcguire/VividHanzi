@@ -36,6 +36,7 @@ const rootDir = join(scriptDir, '../..')
 const dataDir = join(rootDir, 'src/data')
 const strokesDir = join(rootDir, 'public/strokes')
 const examplesDir = join(rootDir, 'public/examples')
+const sentencesDir = join(rootDir, 'public/sentences')
 const fullDictionaryDir = join(DATA_RELEASE_DIR, 'dictionary')
 const conflictsReport = join(rootDir, 'docs/DATA_CONFLICTS.md')
 const hanziWriterDataDir = join(rootDir, 'node_modules/hanzi-writer-data')
@@ -297,6 +298,23 @@ chunks.forEach((chunk, index) => {
 if (examplesByLevel.size > 0) mkdirSync(examplesDir, { recursive: true })
 for (const [level, examples] of examplesByLevel) {
   writeFileSync(join(examplesDir, `hsk${level}.json`), `${JSON.stringify(examples, null, 1)}\n`)
+}
+
+// Small index for the Sentences tab: counts and ids, without the sentence texts.
+if (examplesByLevel.size > 0) {
+  mkdirSync(sentencesDir, { recursive: true })
+  const manifest = {
+    source: 'Tatoeba',
+    license: 'CC BY 2.0 FR',
+    exportDate: [...examplesByLevel.values()][0]!.exportDate,
+    levels: [...examplesByLevel].map(([level, examples]) => ({
+      level,
+      count: examples.sentences.length,
+      audio: examples.sentences.filter((sentence) => sentence.audio).length,
+      ids: examples.sentences.map((sentence) => sentence.tatoebaId),
+    })),
+  }
+  writeFileSync(join(sentencesDir, 'manifest.json'), `${JSON.stringify(manifest, null, 1)}\n`)
 }
 
 writeFileSync(

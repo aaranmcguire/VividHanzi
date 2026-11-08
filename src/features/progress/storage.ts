@@ -29,6 +29,8 @@ export function loadProgress(storage?: KeyValueStorage): ProgressData {
 
   return {
     items: keepValid(saved.items, isItemProgress),
+    // Sentence progress came later: data saved before it has none, and that's fine
+    sentences: isRecord(saved.sentences) ? keepValid(saved.sentences, isItemProgress) : {},
     // Writing progress came later: data saved before it has none, and that's fine
     writing: isRecord(saved.writing) ? keepValid(saved.writing, isItemProgress) : {},
     // Same for the characters taught for writing

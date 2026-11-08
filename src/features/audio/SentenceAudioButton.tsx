@@ -13,9 +13,12 @@ import { claimAudio, releaseAudio, stopAllAudio } from './playback.ts'
 export function SentenceAudioButton({
   sentence,
   className = '',
+  autoPlay = false,
 }: {
   sentence: ExampleSentence
   className?: string
+  /** Start playing when the card appears (sentence Learn/Study). */
+  autoPlay?: boolean
 }) {
   // False during prerendering, where speech synthesis doesn't exist.
   const speechAvailable = useSyncExternalStore(
@@ -25,18 +28,22 @@ export function SentenceAudioButton({
   )
 
   if (!sentence.audio && !speechAvailable) return null
-  return <SentenceAudioButtonInner sentence={sentence} className={className} />
+  return <SentenceAudioButtonInner sentence={sentence} className={className} autoPlay={autoPlay} />
 }
 
 function SentenceAudioButtonInner({
   sentence,
   className,
+  autoPlay,
 }: {
   sentence: ExampleSentence
   className: string
+  autoPlay: boolean
 }) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [playing, setPlaying] = useState(false)
+  const autoPlayed = useRef(false)
+  const playRef = useRef<() => void>(() => {})
 
   useEffect(() => {
     const audio = audioRef.current
@@ -54,10 +61,12 @@ function SentenceAudioButtonInner({
     if (audio) {
       claimAudio(audio)
       audio.currentTime = 0
-      void audio.play().then(
-        () => setPlaying(true),
-        () => setPlaying(false),
-      )
+      void Promise.resolve()
+        .then(() => audio.play())
+        .then(
+          () => setPlaying(true),
+          () => setPlaying(false),
+        )
       return
     }
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
@@ -69,6 +78,17 @@ function SentenceAudioButtonInner({
     setPlaying(true)
     window.speechSynthesis.speak(utterance)
   }
+
+  useEffect(() => {
+    playRef.current = play
+  })
+
+  useEffect(() => {
+    if (!autoPlay || autoPlayed.current) return
+    autoPlayed.current = true
+    const timer = window.setTimeout(() => playRef.current(), 0)
+    return () => window.clearTimeout(timer)
+  }, [autoPlay])
 
   const label = t('audio.playSentence', { text: sentence.zh })
 

@@ -40,6 +40,9 @@ D1/Supabase storage.
   pinyin, match meanings, listening choice, listening translation and writing.
 - **Sentence translation:** sentences built only from the words you have
   learned, translated into English and checked against a reference.
+- **Sentence learning:** HSK 1-4 sentence sets with flip cards. Hear and read
+  the Chinese, reveal the pinyin and translation, then review with spaced
+  repetition.
 - **Optional AI help:** on Cloudflare Workers with Workers AI, DeepSeek 4.1
   grades translations and suggests hints and memory tips. Without the AI
   binding the mode keeps its normal self-grading; DeepSeek 4.1 requires a

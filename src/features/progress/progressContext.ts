@@ -2,6 +2,7 @@ import { createContext, use } from 'react'
 import type { StudyItemId } from '../dictionary/studyItem.ts'
 import type { HskLevel } from '../dictionary/types.ts'
 import type { ExerciseResult } from '../practice/types.ts'
+import type { SentenceId } from '../sentences/types.ts'
 import type { LeveledItem } from './progress.ts'
 import type { ItemProgress, ProgressData } from './types.ts'
 
@@ -14,6 +15,10 @@ export interface ProgressContextValue {
   recordPracticeAnswer: (correct: boolean) => void
   /** Marks an item as learned (Learn session). */
   introduceItem: (itemId: StudyItemId) => void
+  /** Marks a sentence as learned (sentence Learn session). */
+  introduceSentence: (sentenceId: SentenceId) => void
+  /** Records an answer about a whole sentence (sentence Study session). */
+  recordSentenceAnswer: (sentenceId: SentenceId, correct: boolean) => void
   /** Marks characters as taught for writing (see markCharactersTaught). */
   markCharactersTaught: (characters: readonly string[]) => void
   /** Marks an item as already mastered (Learn session): it comes up again only very occasionally. */

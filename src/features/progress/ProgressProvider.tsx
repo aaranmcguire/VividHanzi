@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { KeyValueStorage } from '../../lib/storage.ts'
-import { applyHskLevel, createEmptyProgress, introduceItem, markCharactersTaught, markItemKnown, recordAnswer, recordPracticeAnswer, recordWritingAnswer, restoreProgress, setItemExcluded, setItemKnown } from './progress.ts'
+import { applyHskLevel, createEmptyProgress, introduceItem, introduceSentence, markCharactersTaught, markItemKnown, recordAnswer, recordPracticeAnswer, recordSentenceAnswer, recordWritingAnswer, restoreProgress, setItemExcluded, setItemKnown } from './progress.ts'
 import { EXERCISE_SKILLS } from './skills.ts'
 import { ProgressContext, type ProgressContextValue } from './progressContext.ts'
 import { loadProgress, saveProgress } from './storage.ts'
@@ -36,6 +36,10 @@ export function ProgressProvider({ children, storage }: ProgressProviderProps) {
       },
       recordPracticeAnswer: (correct) => setProgress((current) => recordPracticeAnswer(current, correct, new Date())),
       introduceItem: (itemId) => setProgress((current) => introduceItem(current, itemId, new Date())),
+      introduceSentence: (sentenceId) =>
+        setProgress((current) => introduceSentence(current, sentenceId, new Date())),
+      recordSentenceAnswer: (sentenceId, correct) =>
+        setProgress((current) => recordSentenceAnswer(current, sentenceId, correct, new Date())),
       markCharactersTaught: (characters) =>
         setProgress((current) => markCharactersTaught(current, characters, new Date())),
       markItemKnown: (itemId) => setProgress((current) => markItemKnown(current, itemId, new Date())),

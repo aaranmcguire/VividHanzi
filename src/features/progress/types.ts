@@ -55,6 +55,12 @@ export interface DailyActivity {
 export interface ProgressData {
   items: Partial<Record<StudyItemId, ItemProgress>>
   /**
+   * Sentence learning progress, apart from words and characters. Sentence ids
+   * are "sentence:<Tatoeba id>" (see features/sentences). Keeping them here
+   * means word stats and difficult-word lists don't mix sentences in.
+   */
+  sentences: Partial<Record<StudyItemId, ItemProgress>>
+  /**
    * Writing progress, apart from `items` (recognition): writing is much
    * harder, so a miss while writing doesn't send the item back to level 0
    * for reading too. Same record shape, never with `basic` or `fromLevel`.

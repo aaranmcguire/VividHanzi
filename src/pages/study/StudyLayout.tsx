@@ -6,6 +6,7 @@ import { t, type MessageKey } from '../../i18n/index.ts'
 const STUDY_TABS: readonly { path: string; labelKey: MessageKey }[] = [
   { path: '/study', labelKey: 'study.myStudies' },
   { path: '/study/hsk', labelKey: 'study.hsk' },
+  { path: '/study/sentences', labelKey: 'study.sentences' },
   { path: '/study/topics', labelKey: 'study.topics' },
   { path: '/study/custom', labelKey: 'study.custom' },
 ]

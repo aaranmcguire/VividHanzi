@@ -39,6 +39,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const cacheDir = join(root, 'scripts/dataset/.cache')
 const tatoebaDir = join(cacheDir, 'tatoeba')
 const examplesDir = join(root, 'public/examples')
+const sentencesDir = join(root, 'public/sentences')
 const audioDir = join(root, 'public/audio/sentences')
 const downloadAudio = !process.argv.includes('--no-audio')
 
@@ -162,6 +163,21 @@ async function main() {
     const withAudio = set.sentences.filter((sentence) => sentence.audio).length
     console.log(`HSK ${level}: ${set.sentences.length} sentences, ${withAudio} with Tatoeba audio.`)
   }
+
+  // Small index for the Sentences tab: counts and ids, without the sentence texts.
+  mkdirSync(sentencesDir, { recursive: true })
+  const manifest = {
+    source: 'Tatoeba',
+    license: 'CC BY 2.0 FR',
+    exportDate,
+    levels: [...selected].map(([level, set]) => ({
+      level,
+      count: set.sentences.length,
+      audio: set.sentences.filter((sentence) => sentence.audio).length,
+      ids: set.sentences.map((sentence) => sentence.tatoebaId),
+    })),
+  }
+  writeFileSync(join(sentencesDir, 'manifest.json'), `${JSON.stringify(manifest, null, 1)}\n`)
 
   if (downloaded.size > 0) {
     const lines = [

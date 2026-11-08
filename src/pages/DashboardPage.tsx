@@ -65,6 +65,18 @@ export function DashboardPage() {
         <TodaysWord now={now} />
 
         <Card>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">{t('study.sentences')}</h2>
+              <p className="mt-1 text-ink-muted">{t('sets.sentences.intro')}</p>
+            </div>
+            <ButtonLink to="/study/sentences" variant="secondary">
+              {t('sets.open')}
+            </ButtonLink>
+          </div>
+        </Card>
+
+        <Card>
           <h2 className="text-lg font-semibold">{t('dashboard.practiceType')}</h2>
           <p className="mt-1 mb-4 text-ink-muted">{t('dashboard.practiceTypeDescription')}</p>
           <ul className="flex flex-wrap gap-2">

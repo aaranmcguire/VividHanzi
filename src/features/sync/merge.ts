@@ -11,6 +11,7 @@ import type { DailyActivity, ExcludedItem, ItemProgress, ProgressData } from '..
 
 export function mergeProgress(local: ProgressData, remote: ProgressData): ProgressData {
   const items = mergeRecords(local.items, remote.items)
+  const sentences = mergeRecords(local.sentences, remote.sentences)
   const writing = mergeRecords(local.writing, remote.writing)
 
   // They can't be added up: if a day was partly synced already, answers would
@@ -32,7 +33,7 @@ export function mergeProgress(local: ProgressData, remote: ProgressData): Progre
     const other = writingTaught[character]
     if (!other || date < other) writingTaught[character] = date
   }
-  return { items, writing, writingTaught, activity, excluded }
+  return { items, sentences, writing, writingTaught, activity, excluded }
 }
 
 type ProgressRecords = ProgressData['items']

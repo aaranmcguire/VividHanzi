@@ -14,6 +14,9 @@ import { CreateCustomSetPage } from '../pages/study/CreateCustomSetPage.tsx'
 import { CustomSetListPage } from '../pages/study/CustomSetListPage.tsx'
 import { ImportCustomSetPage } from '../pages/study/ImportCustomSetPage.tsx'
 import { MyStudiesPage } from '../pages/study/MyStudiesPage.tsx'
+import { SentenceSessionPage } from '../pages/study/SentenceSessionPage.tsx'
+import { SentenceSetPage } from '../pages/study/SentenceSetPage.tsx'
+import { SentencesPage } from '../pages/study/SentencesPage.tsx'
 import { SetDetailPage } from '../pages/study/SetDetailPage.tsx'
 import { SetListPage } from '../pages/study/SetListPage.tsx'
 import { StudyLayout } from '../pages/study/StudyLayout.tsx'
@@ -31,12 +34,16 @@ export function AppRoutes() {
         <Route path="study" element={<StudyLayout />}>
           <Route index element={<MyStudiesPage />} />
           <Route path="hsk" element={<SetListPage type="hsk" />} />
+          <Route path="sentences" element={<SentencesPage />} />
+          <Route path="sentences/:level" element={<SentenceSetPage />} />
           <Route path="topics" element={<SetListPage type="topic" />} />
           <Route path="custom" element={<CustomSetListPage />} />
         </Route>
         <Route path="study/custom/new" element={<CreateCustomSetPage />} />
         <Route path="study/custom/import" element={<ImportCustomSetPage />} />
         <Route path="study/sets/:setId" element={<SetDetailPage />} />
+        <Route path="study/sentences/:level/learn" element={<SentenceSessionPage mode="learn" />} />
+        <Route path="study/sentences/:level/study" element={<SentenceSessionPage mode="study" />} />
         <Route path="study/practice" element={<PracticePage />} />
         <Route path="dictionary" element={<DictionaryPage />} />
         <Route path="vocabulary/:id" element={<EntryDetailPage kind="word" />} />

@@ -1,6 +1,7 @@
 import { toDateKey } from '../../lib/dates.ts'
 import type { HskLevel } from '../dictionary/types.ts'
 import type { StudyItemId } from '../dictionary/studyItem.ts'
+import type { SentenceId } from '../sentences/types.ts'
 import { isReviewDue, MAX_MASTERY_LEVEL, scheduleFirstReview, scheduleKnownItem, scheduleNextReview, type ReviewSchedule } from '../srs/srs.ts'
 import { nextSkillStats, type RecognitionSkill, type SkillResults } from './skills.ts'
 import type { ItemProgress, ProgressData } from './types.ts'
@@ -17,7 +18,7 @@ export type ItemStatus = 'new' | 'learning' | 'mastered'
 export type DisplayStatus = ItemStatus | 'excluded'
 
 export function createEmptyProgress(): ProgressData {
-  return { items: {}, writing: {}, writingTaught: {}, activity: {}, excluded: {} }
+  return { items: {}, sentences: {}, writing: {}, writingTaught: {}, activity: {}, excluded: {} }
 }
 
 /**
@@ -36,6 +37,27 @@ export function recordAnswer(
   return {
     ...progress,
     items: { ...progress.items, [itemId]: answeredRecord(progress.items[itemId], itemId, correct, now, skills) },
+    activity: addToActivity(progress.activity, correct, now),
+  }
+}
+
+/**
+ * Records an answer about a whole sentence: it updates the sentence's own
+ * spaced repetition record (ProgressData.sentences) and the day's activity.
+ * Word and character progress is left alone.
+ */
+export function recordSentenceAnswer(
+  progress: ProgressData,
+  sentenceId: SentenceId,
+  correct: boolean,
+  now: Date,
+): ProgressData {
+  return {
+    ...progress,
+    sentences: {
+      ...progress.sentences,
+      [sentenceId]: answeredRecord(progress.sentences[sentenceId], sentenceId, correct, now),
+    },
     activity: addToActivity(progress.activity, correct, now),
   }
 }
@@ -111,6 +133,18 @@ export function introduceItem(progress: ProgressData, itemId: StudyItemId, now: 
   return addItem(progress, itemId, now, scheduleFirstReview(now))
 }
 
+/** The sentence version of introduceItem: it creates its first review record. */
+export function introduceSentence(progress: ProgressData, sentenceId: SentenceId, now: Date): ProgressData {
+  if (progress.sentences[sentenceId]) return progress
+  return {
+    ...progress,
+    sentences: {
+      ...progress.sentences,
+      [sentenceId]: { ...newItem(sentenceId, now), ...scheduleFirstReview(now) },
+    },
+  }
+}
+
 /**
  * Like introduceItem, but for an item the user already knows: it goes
  * straight in as mastered and its first review is a long way off (see
@@ -120,6 +154,18 @@ export function introduceItem(progress: ProgressData, itemId: StudyItemId, now: 
  */
 export function markItemKnown(progress: ProgressData, itemId: StudyItemId, now: Date): ProgressData {
   return addItem(progress, itemId, now, scheduleKnownItem(now))
+}
+
+/** The sentence version of markItemKnown: it goes straight in as mastered. */
+export function markSentenceKnown(progress: ProgressData, sentenceId: SentenceId, now: Date): ProgressData {
+  if (progress.sentences[sentenceId]) return progress
+  return {
+    ...progress,
+    sentences: {
+      ...progress.sentences,
+      [sentenceId]: { ...newItem(sentenceId, now), ...scheduleKnownItem(now) },
+    },
+  }
 }
 
 /**
@@ -236,19 +282,26 @@ export function restoreProgress(
   now: Date,
 ): ProgressData {
   const items = { ...current.items }
+  const sentences = { ...current.sentences }
   const writing = { ...current.writing }
   const excluded = { ...current.excluded }
   for (const itemId of itemIds) {
-    if (before.items[itemId]) items[itemId] = before.items[itemId]
-    else delete items[itemId]
-    if (before.writing[itemId]) writing[itemId] = before.writing[itemId]
-    else delete writing[itemId]
+    if (itemId.startsWith('sentence:')) {
+      if (before.sentences[itemId]) sentences[itemId] = before.sentences[itemId]
+      else delete sentences[itemId]
+    } else {
+      if (before.items[itemId]) items[itemId] = before.items[itemId]
+      else delete items[itemId]
+      if (before.writing[itemId]) writing[itemId] = before.writing[itemId]
+      else delete writing[itemId]
+    }
     if (current.excluded[itemId] !== before.excluded[itemId]) {
       excluded[itemId] = before.excluded[itemId] ?? { excluded: false, changedAt: now.toISOString() }
     }
   }
   return {
     items,
+    sentences,
     writing,
     excluded,
     activity: restoreChangedKeys(current.activity, before.activity),
